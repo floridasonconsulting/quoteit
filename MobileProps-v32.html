@@ -1,0 +1,2863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote-it - Professional Quote Generator</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Quote-it">
+    <meta name="description" content="Create and manage professional quotes on the go">
+    
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMjAiIGZpbGw9IiMzYjgyZjYiLz4KPHN2ZyB4PSI0MCIgeT0iNDAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IndoaXRlIj4KPHA+UWk8L3A+Cjwvc3ZnPgo8L3N2Zz4=">
+    <link rel="manifest" href="#" id="manifest-placeholder">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        /* Dark theme styles */
+        .dark-theme {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #ffffff;
+        }
+        .dark-theme * {
+            color: #ffffff !important;
+        }
+        .dark-theme header {
+            background-color: #374151;
+            border-color: #4f46e5;
+        }
+        .dark-theme nav {
+            background-color: #374151;
+            border-color: #4b5563;
+        }
+        .dark-theme .bg-white {
+            background-color: #374151 !important;
+        }
+        .dark-theme .bg-gray-50 {
+            background-color: #4b5563 !important;
+        }
+        .dark-theme .bg-gray-100 {
+            background-color: #6b7280 !important;
+        }
+        .dark-theme .border-gray-200 {
+            border-color: #6b7280 !important;
+        }
+        .dark-theme .border-gray-300 {
+            border-color: #6b7280 !important;
+        }
+        .dark-theme input, .dark-theme textarea, .dark-theme select {
+            background-color: #4b5563 !important;
+            color: #ffffff !important;
+            border-color: #6b7280 !important;
+        }
+        .dark-theme input::placeholder, .dark-theme textarea::placeholder {
+            color: #d1d5db !important;
+        }
+        
+        /* Force light theme for quote modals and previews */
+        .quote-modal, .quote-preview {
+            background-color: white !important;
+            color: #1f2937 !important;
+        }
+        .quote-modal *, .quote-preview * {
+            color: #1f2937 !important;
+        }
+        .quote-modal .bg-white {
+            background-color: white !important;
+        }
+        .quote-modal .bg-gray-50 {
+            background-color: #f9fafb !important;
+        }
+        .quote-modal .bg-gray-100 {
+            background-color: #f3f4f6 !important;
+        }
+        .quote-modal .border-gray-200 {
+            border-color: #e5e7eb !important;
+        }
+        .quote-modal .border-gray-300 {
+            border-color: #d1d5db !important;
+        }
+        .quote-modal input, .quote-modal textarea, .quote-modal select {
+            background-color: white !important;
+            color: #1f2937 !important;
+            border-color: #d1d5db !important;
+        }
+        .quote-modal input::placeholder, .quote-modal textarea::placeholder {
+            color: #9ca3af !important;
+        }
+        
+        /* Hide scrollbar for navigation */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-500">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <!-- Calculator and Pencil Logo -->
+                        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <!-- Calculator -->
+                            <rect x="3" y="2" width="8" height="12" rx="1" fill="currentColor" opacity="0.8"/>
+                            <rect x="4" y="4" width="6" height="2" rx="0.5" fill="white"/>
+                            <circle cx="5" cy="8" r="0.5" fill="white"/>
+                            <circle cx="7" cy="8" r="0.5" fill="white"/>
+                            <circle cx="9" cy="8" r="0.5" fill="white"/>
+                            <circle cx="5" cy="10" r="0.5" fill="white"/>
+                            <circle cx="7" cy="10" r="0.5" fill="white"/>
+                            <circle cx="9" cy="10" r="0.5" fill="white"/>
+                            <circle cx="5" cy="12" r="0.5" fill="white"/>
+                            <circle cx="7" cy="12" r="0.5" fill="white"/>
+                            <circle cx="9" cy="12" r="0.5" fill="white"/>
+                            <!-- Pencil -->
+                            <path d="M13 3l7 7-10 10H7v-3L17 7l-4-4z" fill="currentColor" opacity="0.9"/>
+                            <path d="M13 3l2 2-10 10v-2L15 3h-2z" fill="white" opacity="0.7"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">Quote-it</h1>
+                </div>
+                <div class="relative">
+                    <button id="menuBtn" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <div id="menuDropdown" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-2">
+                            <div class="px-3 py-2 text-sm font-medium text-gray-700 border-b border-gray-100">Quick Navigation</div>
+                            <button class="menu-nav-btn w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2" data-tab="dashboard">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                                </svg>
+                                <span>Dashboard</span>
+                            </button>
+                            <button class="menu-nav-btn w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2" data-tab="customers">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span>Customers</span>
+                            </button>
+                            <button class="menu-nav-btn w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2" data-tab="items">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                                <span>Items</span>
+                            </button>
+                            <button class="menu-nav-btn w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2" data-tab="quotes">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>Quotes</span>
+                            </button>
+                            <button class="menu-nav-btn w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2" data-tab="settings">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span>Settings</span>
+                            </button>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <button id="menuCreateQuote" class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center space-x-2 font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Create Quote</span>
+                            </button>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <div class="px-3 py-2 text-sm font-medium text-gray-700">Display Theme</div>
+                            <button id="lightTheme" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                <span>Light Theme</span>
+                            </button>
+                            <button id="darkTheme" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
+                                <span>Dark Theme</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="px-2 py-2">
+            <div class="flex space-x-1 overflow-x-auto scrollbar-hide">
+                <button class="nav-btn active px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 flex-shrink-0" data-tab="dashboard">Dashboard</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 flex-shrink-0" data-tab="customers">Customers</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 flex-shrink-0" data-tab="items">Items</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 flex-shrink-0" data-tab="quotes">Quotes</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 flex-shrink-0" data-tab="aging">Aging</button>
+                <button class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 flex-shrink-0" data-tab="settings">Settings</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="px-4 py-6" id="mainContent">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content fade-in">
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                    <div class="grid grid-cols-1 gap-4">
+                        <button id="newQuoteBtn" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center space-x-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span class="font-semibold">Create New Quote</span>
+                        </button>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="nav-trigger bg-green-500 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all" data-tab="customers">
+                                <div class="text-center">
+                                    <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <span class="font-medium">Customers</span>
+                                </div>
+                            </button>
+                            <button class="nav-trigger bg-purple-500 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all" data-tab="items">
+                                <div class="text-center">
+                                    <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    <span class="font-medium">Items</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Quote Aging Overview</h3>
+                    <div id="agingOverview" class="space-y-3">
+                        <!-- Aging overview will be populated here -->
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Follow-Up Required</h3>
+                    <div id="followUpList" class="space-y-3">
+                        <!-- Follow-up items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="customers" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800">Customer Management</h2>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <input type="text" id="customerSearch" placeholder="Search customers..." class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button id="addCustomerBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                        <button id="importCustomersBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
+                            📥 Import
+                        </button>
+                        <button id="exportCustomersBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm">
+                            📤 Export
+                        </button>
+                        <button id="deleteSelectedCustomers" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm hidden">
+                            🗑️ Delete Selected
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="selectAllCustomers" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-600">Select All</span>
+                        </label>
+                        <span id="selectedCustomersCount" class="text-sm text-gray-500 hidden">0 selected</span>
+                    </div>
+
+                    <div id="customersList" class="space-y-2">
+                        <!-- Customers will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Tab -->
+        <div id="items" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800">Product/Service Items</h2>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <input type="text" id="itemSearch" placeholder="Search items..." class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button id="addItemBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                        <button id="importItemsBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
+                            📥 Import
+                        </button>
+                        <button id="exportItemsBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm">
+                            📤 Export
+                        </button>
+                        <button id="deleteSelectedItems" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm hidden">
+                            🗑️ Delete Selected
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="selectAllItems" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-600">Select All</span>
+                        </label>
+                        <span id="selectedItemsCount" class="text-sm text-gray-500 hidden">0 selected</span>
+                    </div>
+
+                    <div id="itemsList" class="space-y-2">
+                        <!-- Items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quotes Tab -->
+        <div id="quotes" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800">My Quotes</h2>
+                    <button class="create-quote-btn bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-600 transition-colors text-sm">
+                        New Quote
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <div id="quotesList" class="space-y-3">
+                        <!-- Quotes will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aging Tab -->
+        <div id="aging" class="tab-content hidden">
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-gray-800">Quote Aging Dashboard</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Aging Overview -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Aging Overview</h3>
+                        <div id="agingOverviewDetailed" class="space-y-3">
+                            <!-- Detailed aging overview will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Follow-Up Actions -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Action Required</h3>
+                        <div id="followUpListDetailed" class="space-y-3">
+                            <!-- Detailed follow-up list will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Sent Quotes with Aging -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">All Sent Quotes</h3>
+                    <div class="mb-4">
+                        <select id="agingFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All Quotes</option>
+                            <option value="fresh">Fresh (≤7 days)</option>
+                            <option value="warm">Warm (8-14 days)</option>
+                            <option value="aging">Aging (15-30 days)</option>
+                            <option value="stale">Stale (>30 days)</option>
+                            <option value="needsFollowUp">Needs Follow-Up</option>
+                        </select>
+                    </div>
+                    <div id="agingQuotesList" class="space-y-3">
+                        <!-- Aging quotes list will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content hidden">
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-gray-800">Company Settings</h2>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Company Information</h3>
+                    <div class="space-y-4">
+                        <!-- Logo Upload Section -->
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                            <div class="text-center">
+                                <div id="logoPreview" class="mb-4 hidden">
+                                    <img id="logoImage" src="" alt="Company Logo" class="mx-auto max-h-24 max-w-48 object-contain">
+                                </div>
+                                <div id="logoPlaceholder" class="mb-4">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                <div class="flex justify-center space-x-2">
+                                    <label for="logoUpload" class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                                        Upload Logo
+                                    </label>
+                                    <button id="removeLogo" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm hidden">
+                                        Remove
+                                    </button>
+                                </div>
+                                <input type="file" id="logoUpload" accept="image/*" class="hidden">
+                                <p class="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 2MB</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" id="companyName" placeholder="Company Name" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <textarea id="companyAddress" placeholder="Company Address" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-20 resize-none"></textarea>
+                            <input type="tel" id="companyPhone" placeholder="Phone Number" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <input type="email" id="companyEmail" placeholder="Email Address" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <input type="url" id="companyWebsite" placeholder="Website URL" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <button id="saveCompanyInfo" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            Save Company Information
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Quote Settings</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Hide Line Item Pricing</label>
+                                <p class="text-xs text-gray-500">Only show total amount in quotes</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="hideLineItemPricing" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Default Quote Terms</label>
+                            <textarea id="defaultTerms" placeholder="Enter default terms and conditions..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-24 resize-none"></textarea>
+                        </div>
+                        
+                        <button id="saveQuoteSettings" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            Save Quote Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Quote Creation Modal -->
+    <div id="quoteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-end justify-center min-h-screen">
+            <div class="quote-modal bg-white rounded-t-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto slide-up">
+                <div class="sticky top-0 bg-white border-b p-4 rounded-t-2xl">
+                    <div class="flex justify-between items-center">
+                        <h3 id="quoteModalTitle" class="text-lg font-semibold text-gray-800">Create Quote</h3>
+                        <button id="closeQuoteModal" class="p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    <!-- Customer Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Customer</label>
+                        <select id="quoteCustomer" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Choose a customer...</option>
+                        </select>
+                    </div>
+
+                    <!-- Quote Details -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quote Title</label>
+                        <input type="text" id="quoteTitle" placeholder="Enter quote title..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Items Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Add Items</label>
+                        <div class="space-y-2">
+                            <select id="itemSelector" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select an item to add...</option>
+                            </select>
+                            <div id="selectedItems" class="space-y-2">
+                                <!-- Selected items will appear here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Item Section -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Add Custom Item</label>
+                        <div class="space-y-2">
+                            <input type="text" id="customItemName" placeholder="Custom item name..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <div class="flex space-x-2">
+                                <input type="number" id="customItemPrice" placeholder="Price" step="0.01" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <button id="addCustomItem" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                                    Add Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quote Notes -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                        <textarea id="quoteNotes" placeholder="Add any additional notes or terms..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-20 resize-none"></textarea>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Total Amount:</span>
+                            <span id="quoteTotal" class="text-xl font-bold text-blue-600">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="space-y-3 pt-4">
+                        <button id="previewQuote" class="w-full bg-purple-500 text-white py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors">
+                            Preview Quote
+                        </button>
+                        <div class="flex space-x-3">
+                            <button id="saveQuote" class="flex-1 bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                                Save Draft
+                            </button>
+                            <button id="sendQuote" class="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+                                📧 Send Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div id="customerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl w-full max-w-md">
+                <div class="p-4 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 id="customerModalTitle" class="text-lg font-semibold text-gray-800">Add Customer</h3>
+                        <button class="close-modal p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 space-y-4">
+                    <input type="text" id="customerName" placeholder="Company Name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="customerContact" placeholder="Contact Person" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="email" id="customerEmail" placeholder="Email Address" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="tel" id="customerPhone" placeholder="Phone Number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <button id="saveCustomer" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                        Add Customer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="itemModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl w-full max-w-md">
+                <div class="p-4 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 id="itemModalTitle" class="text-lg font-semibold text-gray-800">Add Item</h3>
+                        <button class="close-modal p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 space-y-4">
+                    <input type="text" id="itemName" placeholder="Item Name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <textarea id="itemDescription" placeholder="Description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-20 resize-none"></textarea>
+                    <input type="number" id="itemPrice" placeholder="Price" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <button id="saveItem" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                        Add Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quote Preview Modal -->
+    <div id="quotePreviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="quote-preview bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-white border-b p-4 rounded-t-2xl flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800">Quote Preview</h3>
+                    <div class="flex space-x-2">
+                        <button id="downloadPDF" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm">
+                            📄 Download PDF
+                        </button>
+                        <button id="closePreviewModal" class="p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="quotePreviewContent" class="p-8">
+                    <!-- Quote content will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl w-full max-w-md">
+                <div class="p-4 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 id="importModalTitle" class="text-lg font-semibold text-gray-800">Import Data</h3>
+                        <button class="close-modal p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 space-y-4">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <label for="importFile" class="cursor-pointer">
+                            <span class="mt-2 block text-sm font-medium text-gray-900">
+                                Choose Excel/CSV file to upload
+                            </span>
+                            <span class="mt-1 block text-xs text-gray-500">
+                                Excel (.xlsx) or CSV files only
+                            </span>
+                        </label>
+                        <input type="file" id="importFile" accept=".xlsx,.xls,.csv" class="hidden">
+                    </div>
+                    <div id="importInstructions" class="text-sm text-gray-600">
+                        <!-- Instructions will be populated based on import type -->
+                    </div>
+                    <button id="processImport" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:bg-gray-300" disabled>
+                        Import Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let customers = [
+            { id: 1, name: "Acme Corporation", contact: "John Smith", email: "john@acme.com", phone: "(555) 123-4567" },
+            { id: 2, name: "Tech Solutions Inc", contact: "Sarah Johnson", email: "sarah@techsol.com", phone: "(555) 987-6543" }
+        ];
+
+        let items = [
+            { id: 1, name: "Website Development", description: "Custom website design and development", price: 5000 },
+            { id: 2, name: "SEO Optimization", description: "Search engine optimization package", price: 1500 },
+            { id: 3, name: "Mobile App Development", description: "Native mobile application", price: 8000 },
+            { id: 4, name: "Consulting Services", description: "Technical consulting per hour", price: 150 }
+        ];
+
+        let quotes = [
+            { id: 1, title: "Website Redesign Project", customer: "Acme Corporation", total: 6500, status: "Sent", date: "2024-01-15", sentDate: "2024-01-15", items: [
+                { id: 1, name: "Website Development", description: "Custom website design and development", price: 5000, quantity: 1 },
+                { id: 2, name: "SEO Optimization", description: "Search engine optimization package", price: 1500, quantity: 1 }
+            ], notes: "Project includes 3 rounds of revisions and 6 months support.", customerInfo: { id: 1, name: "Acme Corporation", contact: "John Smith", email: "john@acme.com", phone: "(555) 123-4567" }, followUpDate: null, lastFollowUp: null }
+        ];
+
+        let companyInfo = {
+            name: "Your Company Name",
+            address: "",
+            phone: "",
+            email: "",
+            website: "",
+            logo: ""
+        };
+
+        let quoteSettings = {
+            hideLineItemPricing: false,
+            defaultTerms: "Payment terms: Net 30 days. All work subject to signed agreement."
+        };
+
+        let selectedQuoteItems = [];
+        let editingQuoteId = null;
+        let editingCustomerId = null;
+        let editingItemId = null;
+        let currentTheme = 'light';
+        let currentImportType = '';
+
+        // Bulk Selection Functions
+        function updateCustomerSelection() {
+            const checkboxes = document.querySelectorAll('.customer-checkbox');
+            const selectedCount = document.querySelectorAll('.customer-checkbox:checked').length;
+            const totalCount = checkboxes.length;
+            
+            const selectAllCheckbox = document.getElementById('selectAllCustomers');
+            const deleteButton = document.getElementById('deleteSelectedCustomers');
+            const countDisplay = document.getElementById('selectedCustomersCount');
+            
+            if (selectedCount > 0) {
+                deleteButton.classList.remove('hidden');
+                countDisplay.classList.remove('hidden');
+                countDisplay.textContent = `${selectedCount} selected`;
+            } else {
+                deleteButton.classList.add('hidden');
+                countDisplay.classList.add('hidden');
+            }
+            
+            if (selectedCount === totalCount && totalCount > 0) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedCount > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+        }
+
+        function updateItemSelection() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            const selectedCount = document.querySelectorAll('.item-checkbox:checked').length;
+            const totalCount = checkboxes.length;
+            
+            const selectAllCheckbox = document.getElementById('selectAllItems');
+            const deleteButton = document.getElementById('deleteSelectedItems');
+            const countDisplay = document.getElementById('selectedItemsCount');
+            
+            if (selectedCount > 0) {
+                deleteButton.classList.remove('hidden');
+                countDisplay.classList.remove('hidden');
+                countDisplay.textContent = `${selectedCount} selected`;
+            } else {
+                deleteButton.classList.add('hidden');
+                countDisplay.classList.add('hidden');
+            }
+            
+            if (selectedCount === totalCount && totalCount > 0) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedCount > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+        }
+
+        function deleteSelectedCustomers() {
+            const selectedIds = Array.from(document.querySelectorAll('.customer-checkbox:checked'))
+                .map(cb => parseInt(cb.dataset.customerId));
+            
+            if (selectedIds.length === 0) return;
+            
+            if (confirm(`Are you sure you want to delete ${selectedIds.length} customer(s)?`)) {
+                customers = customers.filter(c => !selectedIds.includes(c.id));
+                renderCustomers();
+                autoSave();
+            }
+        }
+
+        function deleteSelectedItems() {
+            const selectedIds = Array.from(document.querySelectorAll('.item-checkbox:checked'))
+                .map(cb => parseInt(cb.dataset.itemId));
+            
+            if (selectedIds.length === 0) return;
+            
+            if (confirm(`Are you sure you want to delete ${selectedIds.length} item(s)?`)) {
+                items = items.filter(i => !selectedIds.includes(i.id));
+                renderItems();
+                autoSave();
+            }
+        }
+
+        // Quote Aging Functions
+        function getQuoteAge(quote) {
+            if (!quote.sentDate) return 0;
+            const sentDate = new Date(quote.sentDate);
+            const today = new Date();
+            const diffTime = Math.abs(today - sentDate);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function getQuoteAgeCategory(age) {
+            if (age <= 7) return { category: 'fresh', color: 'green', label: 'Fresh' };
+            if (age <= 14) return { category: 'warm', color: 'yellow', label: 'Warm' };
+            if (age <= 30) return { category: 'aging', color: 'orange', label: 'Aging' };
+            return { category: 'stale', color: 'red', label: 'Stale' };
+        }
+
+        function getQuotesNeedingFollowUp() {
+            const today = new Date();
+            return quotes.filter(quote => {
+                if (quote.status !== 'Sent') return false;
+                
+                // Check if follow-up date has passed
+                if (quote.followUpDate) {
+                    const followUpDate = new Date(quote.followUpDate);
+                    return followUpDate <= today;
+                }
+                
+                // Auto follow-up based on age
+                const age = getQuoteAge(quote);
+                const lastFollowUp = quote.lastFollowUp ? new Date(quote.lastFollowUp) : null;
+                
+                if (age >= 7 && (!lastFollowUp || (today - lastFollowUp) >= 7 * 24 * 60 * 60 * 1000)) {
+                    return true;
+                }
+                
+                return false;
+            });
+        }
+
+        function markQuoteFollowedUp(quoteId) {
+            const quote = quotes.find(q => q.id === quoteId);
+            if (quote) {
+                quote.lastFollowUp = new Date().toISOString().split('T')[0];
+                quote.followUpDate = null; // Clear scheduled follow-up
+                autoSave();
+                renderQuotes();
+                renderDashboard();
+            }
+        }
+
+        function scheduleFollowUp(quoteId, date) {
+            const quote = quotes.find(q => q.id === quoteId);
+            if (quote) {
+                quote.followUpDate = date;
+                autoSave();
+                renderQuotes();
+                renderDashboard();
+            }
+        }
+
+        // Import/Export Functions
+        function exportToExcel(data, filename, headers) {
+            const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            XLSX.writeFile(wb, filename);
+        }
+
+        function parseExcelFile(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    callback(null, jsonData);
+                } catch (error) {
+                    callback(error, null);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function generateQuotePreview() {
+            const customerId = document.getElementById('quoteCustomer').value;
+            const title = document.getElementById('quoteTitle').value.trim();
+            const notes = document.getElementById('quoteNotes').value.trim();
+            
+            if (!customerId || !title || selectedQuoteItems.length === 0) {
+                alert('Please fill in all required fields and add at least one item.');
+                return;
+            }
+
+            const customer = customers.find(c => c.id == customerId);
+            const total = selectedQuoteItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const hideLineItemPricing = quoteSettings.hideLineItemPricing;
+            
+            const logoHtml = companyInfo.logo ? 
+                `<img src="${companyInfo.logo}" alt="Company Logo" class="max-h-16 max-w-32 object-contain mb-4">` : 
+                `<div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="3" y="2" width="8" height="12" rx="1" fill="currentColor" opacity="0.8"/>
+                        <rect x="4" y="4" width="6" height="2" rx="0.5" fill="white"/>
+                        <circle cx="5" cy="8" r="0.5" fill="white"/>
+                        <circle cx="7" cy="8" r="0.5" fill="white"/>
+                        <circle cx="9" cy="8" r="0.5" fill="white"/>
+                        <circle cx="5" cy="10" r="0.5" fill="white"/>
+                        <circle cx="7" cy="10" r="0.5" fill="white"/>
+                        <circle cx="9" cy="10" r="0.5" fill="white"/>
+                        <circle cx="5" cy="12" r="0.5" fill="white"/>
+                        <circle cx="7" cy="12" r="0.5" fill="white"/>
+                        <circle cx="9" cy="12" r="0.5" fill="white"/>
+                        <path d="M13 3l7 7-10 10H7v-3L17 7l-4-4z" fill="currentColor" opacity="0.9"/>
+                        <path d="M13 3l2 2-10 10v-2L15 3h-2z" fill="white" opacity="0.7"/>
+                    </svg>
+                </div>`;
+
+            const itemsHtml = selectedQuoteItems.map(item => {
+                const itemTotal = item.price * item.quantity;
+                return `
+                    <tr class="border-b border-gray-200">
+                        <td class="py-3 px-2">
+                            <div class="font-medium text-gray-900">${item.name}</div>
+                            <div class="text-sm text-gray-600">${item.description}</div>
+                            ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                        </td>
+                        <td class="py-3 px-2 text-center">${item.quantity}</td>
+                        ${!hideLineItemPricing ? `
+                            <td class="py-3 px-2 text-right">$${item.price.toLocaleString()}</td>
+                            <td class="py-3 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
+                        ` : ''}
+                    </tr>
+                `;
+            }).join('');
+
+            const previewHtml = `
+                <div class="max-w-4xl mx-auto bg-white">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            ${logoHtml}
+                            <h1 class="text-2xl font-bold text-gray-900">${companyInfo.name}</h1>
+                            ${companyInfo.address ? `<p class="text-gray-600">${companyInfo.address.replace(/\n/g, '<br>')}</p>` : ''}
+                            ${companyInfo.phone ? `<p class="text-gray-600">${companyInfo.phone}</p>` : ''}
+                            ${companyInfo.email ? `<p class="text-gray-600">${companyInfo.email}</p>` : ''}
+                            ${companyInfo.website ? `<p class="text-gray-600">${companyInfo.website}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-3xl font-bold text-blue-600 mb-2">QUOTE</h2>
+                            <p class="text-gray-600">Date: ${new Date().toLocaleDateString()}</p>
+                            <p class="text-gray-600">Quote #: ${Date.now().toString().slice(-6)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Bill To:</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium text-gray-900">${customer.name}</p>
+                            <p class="text-gray-600">${customer.contact}</p>
+                            <p class="text-gray-600">${customer.email}</p>
+                            <p class="text-gray-600">${customer.phone}</p>
+                        </div>
+                    </div>
+
+                    <!-- Quote Title -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-gray-900">${title}</h3>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="mb-8">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-100 border-b-2 border-gray-300">
+                                    <th class="py-3 px-2 text-left font-semibold text-gray-900">Description</th>
+                                    <th class="py-3 px-2 text-center font-semibold text-gray-900">Qty</th>
+                                    ${!hideLineItemPricing ? `
+                                        <th class="py-3 px-2 text-right font-semibold text-gray-900">Unit Price</th>
+                                        <th class="py-3 px-2 text-right font-semibold text-gray-900">Total</th>
+                                    ` : ''}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="flex justify-end mb-8">
+                        <div class="w-64">
+                            <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
+                                    <span class="text-2xl font-bold text-blue-600">$${total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    ${notes ? `
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Additional Notes:</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-700">${notes.replace(/\n/g, '<br>')}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Terms -->
+                    ${quoteSettings.defaultTerms ? `
+                        <div class="border-t pt-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Terms & Conditions:</h3>
+                            <p class="text-sm text-gray-600">${quoteSettings.defaultTerms.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            document.getElementById('quotePreviewContent').innerHTML = previewHtml;
+            showModal('quotePreviewModal');
+        }
+
+        // Navigation functionality
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Show target tab
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+            }
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-500', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"].nav-btn`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'bg-blue-500', 'text-white');
+                activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            }
+        }
+
+        // Modal Management
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Quote modal functions
+        function openQuoteModal(customerId = null) {
+            editingQuoteId = null;
+            selectedQuoteItems = [];
+            updateSelectedItems();
+            updateQuoteTotal();
+            
+            document.getElementById('quoteModalTitle').textContent = 'Create Quote';
+            document.getElementById('quoteTitle').value = '';
+            document.getElementById('quoteNotes').value = '';
+            document.getElementById('customItemName').value = '';
+            document.getElementById('customItemPrice').value = '';
+            
+            if (customerId) {
+                document.getElementById('quoteCustomer').value = customerId;
+            } else {
+                document.getElementById('quoteCustomer').value = '';
+            }
+            
+            showModal('quoteModal');
+        }
+
+        function updateSelectedItems() {
+            const container = document.getElementById('selectedItems');
+            container.innerHTML = selectedQuoteItems.map((item, index) => `
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h5 class="font-medium text-gray-800">${item.name}</h5>
+                                <p class="text-sm text-gray-600">${item.description}</p>
+                                <p class="text-sm font-semibold text-green-600">$${item.price.toLocaleString()}</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" min="1" value="${item.quantity}" 
+                                       class="w-16 px-2 py-1 border border-gray-300 rounded text-sm quantity-input" 
+                                       data-index="${index}">
+                                <button class="remove-item-btn text-red-500 hover:bg-red-50 p-1 rounded" data-index="${index}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <textarea placeholder="Add custom text for this item..." 
+                                      class="w-full px-2 py-1 border border-gray-300 rounded text-sm custom-text-input h-16 resize-none" 
+                                      data-index="${index}">${item.customText || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add event listeners for quantity changes, custom text, and item removal
+            container.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    const quantity = parseInt(e.target.value) || 1;
+                    selectedQuoteItems[index].quantity = Math.max(1, quantity);
+                    updateQuoteTotal();
+                });
+            });
+
+            container.querySelectorAll('.custom-text-input').forEach(textarea => {
+                textarea.addEventListener('input', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    selectedQuoteItems[index].customText = e.target.value;
+                });
+            });
+
+            container.querySelectorAll('.remove-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.remove-item-btn').dataset.index);
+                    selectedQuoteItems.splice(index, 1);
+                    updateSelectedItems();
+                    updateQuoteTotal();
+                });
+            });
+        }
+
+        function updateQuoteTotal() {
+            const total = selectedQuoteItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('quoteTotal').textContent = `$${total.toLocaleString()}`;
+        }
+
+        function saveQuote(status) {
+            const customerId = document.getElementById('quoteCustomer').value;
+            const title = document.getElementById('quoteTitle').value.trim();
+            const notes = document.getElementById('quoteNotes').value.trim();
+            
+            if (!customerId || !title || selectedQuoteItems.length === 0) {
+                alert('Please fill in all required fields and add at least one item.');
+                return;
+            }
+
+            const customer = customers.find(c => c.id == customerId);
+            const total = selectedQuoteItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const quote = {
+                id: editingQuoteId || Date.now(),
+                title,
+                customer: customer.name,
+                customerInfo: customer,
+                total,
+                status,
+                date: new Date().toISOString().split('T')[0],
+                sentDate: status === 'Sent' ? new Date().toISOString().split('T')[0] : null,
+                items: [...selectedQuoteItems],
+                notes,
+                followUpDate: null,
+                lastFollowUp: null
+            };
+
+            if (editingQuoteId) {
+                const index = quotes.findIndex(q => q.id === editingQuoteId);
+                if (index !== -1) {
+                    const existingQuote = quotes[index];
+                    // Preserve existing dates when editing
+                    quote.sentDate = existingQuote.sentDate || (status === 'Sent' ? new Date().toISOString().split('T')[0] : null);
+                    quote.followUpDate = existingQuote.followUpDate;
+                    quote.lastFollowUp = existingQuote.lastFollowUp;
+                    quotes[index] = quote;
+                }
+            } else {
+                quotes.push(quote);
+            }
+
+            renderQuotes();
+            renderDashboard();
+            autoSave();
+            hideModal('quoteModal');
+            
+            if (status === 'Sent') {
+                // Open email client with quote details
+                openEmailForQuote(quote);
+                alert('Quote saved and email client opened!');
+            } else {
+                alert('Quote saved successfully!');
+            }
+        }
+
+        function generateAndDownloadPDF(filename = null) {
+            return new Promise((resolve, reject) => {
+                const element = document.getElementById('quotePreviewContent');
+                if (!element) {
+                    reject(new Error('Quote preview content not found. Please open the quote preview first.'));
+                    return;
+                }
+
+                // Verify jsPDF is loaded
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    reject(new Error('PDF library not loaded. Please refresh the page and try again.'));
+                    return;
+                }
+
+                // Verify html2canvas is loaded
+                if (!window.html2canvas) {
+                    reject(new Error('Canvas library not loaded. Please refresh the page and try again.'));
+                    return;
+                }
+
+                console.log('Starting PDF generation...');
+
+                // Create a clean container for PDF generation
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    position: absolute;
+                    left: -9999px;
+                    top: 0;
+                    width: 800px;
+                    background-color: #ffffff;
+                    padding: 40px;
+                    font-family: Arial, sans-serif;
+                    color: #000000;
+                    line-height: 1.4;
+                `;
+                
+                // Clone the content and ensure all text is black
+                const clonedContent = element.cloneNode(true);
+                
+                // Force all text to be black for PDF
+                const allElements = clonedContent.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.style.color = '#000000';
+                    if (el.style.backgroundColor && el.style.backgroundColor !== 'white' && el.style.backgroundColor !== '#ffffff') {
+                        // Keep background colors but ensure text contrast
+                        el.style.color = '#000000';
+                    }
+                });
+                
+                tempContainer.appendChild(clonedContent);
+                document.body.appendChild(tempContainer);
+
+                console.log('Temporary container created, waiting for render...');
+
+                // Wait for content to render properly
+                setTimeout(() => {
+                    console.log('Starting html2canvas capture...');
+                    
+                    const options = {
+                        scale: 2, // Higher scale for better quality
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor: '#ffffff',
+                        width: tempContainer.scrollWidth,
+                        height: tempContainer.scrollHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        logging: true, // Enable logging for debugging
+                        removeContainer: false // Don't auto-remove
+                    };
+
+                    html2canvas(tempContainer, options).then(canvas => {
+                        console.log('Canvas created successfully, generating PDF...');
+                        
+                        try {
+                            // Clean up temporary container
+                            if (document.body.contains(tempContainer)) {
+                                document.body.removeChild(tempContainer);
+                            }
+
+                            const imgData = canvas.toDataURL('image/png', 1.0);
+                            
+                            // Verify image data
+                            if (!imgData || imgData === 'data:,') {
+                                throw new Error('Failed to generate image from content');
+                            }
+
+                            const { jsPDF } = window.jspdf;
+                            const pdf = new jsPDF({
+                                orientation: 'portrait',
+                                unit: 'mm',
+                                format: 'a4'
+                            });
+                            
+                            const pdfWidth = pdf.internal.pageSize.getWidth();
+                            const pdfHeight = pdf.internal.pageSize.getHeight();
+                            const canvasWidth = canvas.width;
+                            const canvasHeight = canvas.height;
+                            
+                            console.log(`PDF dimensions: ${pdfWidth}x${pdfHeight}mm`);
+                            console.log(`Canvas dimensions: ${canvasWidth}x${canvasHeight}px`);
+                            
+                            // Calculate dimensions to fit page with margins
+                            const margin = 10;
+                            const availableWidth = pdfWidth - (margin * 2);
+                            const availableHeight = pdfHeight - (margin * 2);
+                            
+                            // Convert pixels to mm (96 DPI standard)
+                            const pxToMm = 0.264583;
+                            const contentWidthMm = canvasWidth * pxToMm;
+                            const contentHeightMm = canvasHeight * pxToMm;
+                            
+                            // Calculate scaling to fit within available space
+                            const scaleX = availableWidth / contentWidthMm;
+                            const scaleY = availableHeight / contentHeightMm;
+                            const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
+                            
+                            const finalWidth = contentWidthMm * scale;
+                            const finalHeight = contentHeightMm * scale;
+                            
+                            // Center the content
+                            const imgX = (pdfWidth - finalWidth) / 2;
+                            const imgY = margin;
+
+                            console.log(`Final image dimensions: ${finalWidth}x${finalHeight}mm at position ${imgX},${imgY}`);
+
+                            // Check if content fits on one page
+                            if (finalHeight <= availableHeight) {
+                                // Single page
+                                pdf.addImage(imgData, 'PNG', imgX, imgY, finalWidth, finalHeight);
+                                console.log('Added single page to PDF');
+                            } else {
+                                // Multi-page handling
+                                console.log('Content requires multiple pages');
+                                const pageHeight = availableHeight;
+                                const totalPages = Math.ceil(finalHeight / pageHeight);
+                                
+                                for (let i = 0; i < totalPages; i++) {
+                                    if (i > 0) {
+                                        pdf.addPage();
+                                        console.log(`Added page ${i + 1}`);
+                                    }
+                                    
+                                    const sourceY = (canvasHeight / totalPages) * i;
+                                    const sourceHeight = Math.min(canvasHeight / totalPages, canvasHeight - sourceY);
+                                    
+                                    // Create canvas for this page section
+                                    const pageCanvas = document.createElement('canvas');
+                                    pageCanvas.width = canvasWidth;
+                                    pageCanvas.height = sourceHeight;
+                                    const pageCtx = pageCanvas.getContext('2d');
+                                    
+                                    pageCtx.fillStyle = '#ffffff';
+                                    pageCtx.fillRect(0, 0, canvasWidth, sourceHeight);
+                                    pageCtx.drawImage(canvas, 0, sourceY, canvasWidth, sourceHeight, 0, 0, canvasWidth, sourceHeight);
+                                    
+                                    const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+                                    const pageHeightMm = sourceHeight * pxToMm * scale;
+                                    
+                                    pdf.addImage(pageImgData, 'PNG', imgX, imgY, finalWidth, pageHeightMm);
+                                }
+                            }
+                            
+                            // Generate filename
+                            const finalFilename = filename || `Quote_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
+                            
+                            console.log(`Saving PDF as: ${finalFilename}`);
+                            
+                            // Save the PDF
+                            pdf.save(finalFilename);
+                            
+                            console.log('PDF saved successfully!');
+                            resolve({ pdf, filename: finalFilename });
+                            
+                        } catch (pdfError) {
+                            console.error('PDF generation error:', pdfError);
+                            // Clean up on error
+                            if (document.body.contains(tempContainer)) {
+                                document.body.removeChild(tempContainer);
+                            }
+                            reject(new Error(`PDF creation failed: ${pdfError.message}`));
+                        }
+                    }).catch(canvasError => {
+                        console.error('Canvas generation error:', canvasError);
+                        // Clean up on error
+                        if (document.body.contains(tempContainer)) {
+                            document.body.removeChild(tempContainer);
+                        }
+                        reject(new Error(`Image capture failed: ${canvasError.message}. Try refreshing the page.`));
+                    });
+                }, 2000); // Increased wait time for better rendering
+            });
+        }
+
+        function openEmailForQuote(quote) {
+            const customer = quote.customerInfo;
+            const total = quote.total;
+            const quoteNumber = quote.id.toString().slice(-6);
+            const pdfFilename = `Quote_${quoteNumber}_${quote.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            
+            // First generate the quote preview if not already visible
+            const customerId = quote.customerInfo.id;
+            const title = quote.title;
+            const notes = quote.notes || '';
+            const selectedItems = quote.items;
+            
+            // Generate preview content for PDF
+            generateQuotePreviewForEmail(quote);
+            
+            // Small delay to ensure content is rendered
+            setTimeout(() => {
+                // Generate PDF and then open email
+                generateAndDownloadPDF(pdfFilename).then((result) => {
+                    // Email subject
+                    const subject = encodeURIComponent(`Quote #${quoteNumber} - ${quote.title}`);
+                    
+                    // Email body with PDF attachment note
+                    const body = encodeURIComponent(`Dear ${customer.contact},
+
+Thank you for your interest in our services. Please find attached your quote for ${quote.title}.
+
+Quote Details:
+- Quote Number: #${quoteNumber}
+- Total Amount: $${total.toLocaleString()}
+- Valid Until: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+
+${quote.notes ? `Additional Notes:\n${quote.notes}\n\n` : ''}We look forward to working with you. Please don't hesitate to contact us if you have any questions.
+
+Best regards,
+${companyInfo.name}
+${companyInfo.phone ? `Phone: ${companyInfo.phone}` : ''}
+${companyInfo.email ? `Email: ${companyInfo.email}` : ''}
+${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
+
+✅ PDF DOWNLOADED: The quote PDF "${result.filename}" has been automatically downloaded to your Downloads folder. Please attach it to this email before sending.`);
+
+                    // Build mailto URL
+                    let mailtoUrl = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+                    
+                    // Add CC if company email is provided and different from customer email
+                    if (companyInfo.email && companyInfo.email !== customer.email) {
+                        mailtoUrl += `&cc=${encodeURIComponent(companyInfo.email)}`;
+                    }
+                    
+                    // Open email client
+                    window.location.href = mailtoUrl;
+                    
+                    // Show success message
+                    alert(`✅ PDF downloaded as "${result.filename}" and email opened!\n\nPlease attach the downloaded PDF to your email before sending.`);
+                }).catch(error => {
+                    console.error('PDF generation failed:', error);
+                    
+                    // Show detailed error message
+                    let errorMessage = 'Failed to generate PDF. ';
+                    if (error.message.includes('html2canvas')) {
+                        errorMessage += 'There was an issue capturing the quote content. ';
+                    } else if (error.message.includes('jsPDF')) {
+                        errorMessage += 'There was an issue creating the PDF file. ';
+                    }
+                    errorMessage += 'Please try again or use the Preview option to manually save the quote.';
+                    
+                    alert(errorMessage);
+                    
+                    // Fallback: open email without PDF
+                    const subject = encodeURIComponent(`Quote #${quoteNumber} - ${quote.title}`);
+                    const body = encodeURIComponent(`Dear ${customer.contact},
+
+Thank you for your interest in our services. Please find your quote details for ${quote.title}.
+
+Quote Details:
+- Quote Number: #${quoteNumber}
+- Total Amount: $${total.toLocaleString()}
+- Valid Until: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+
+${quote.notes ? `Additional Notes:\n${quote.notes}\n\n` : ''}We look forward to working with you. Please don't hesitate to contact us if you have any questions.
+
+Best regards,
+${companyInfo.name}
+${companyInfo.phone ? `Phone: ${companyInfo.phone}` : ''}
+${companyInfo.email ? `Email: ${companyInfo.email}` : ''}
+${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
+
+⚠️ Note: PDF generation failed. Please use the quote preview to manually save or print the quote.`);
+
+                    let mailtoUrl = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+                    if (companyInfo.email && companyInfo.email !== customer.email) {
+                        mailtoUrl += `&cc=${encodeURIComponent(companyInfo.email)}`;
+                    }
+                    window.location.href = mailtoUrl;
+                });
+            }, 1500); // Increased delay to ensure content is fully rendered
+        }
+
+        function generateQuotePreviewForEmail(quote) {
+            const customer = quote.customerInfo;
+            const total = quote.total;
+            const hideLineItemPricing = quoteSettings.hideLineItemPricing;
+            
+            const logoHtml = companyInfo.logo ? 
+                `<img src="${companyInfo.logo}" alt="Company Logo" class="max-h-16 max-w-32 object-contain mb-4">` : 
+                `<div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="3" y="2" width="8" height="12" rx="1" fill="currentColor" opacity="0.8"/>
+                        <rect x="4" y="4" width="6" height="2" rx="0.5" fill="white"/>
+                        <circle cx="5" cy="8" r="0.5" fill="white"/>
+                        <circle cx="7" cy="8" r="0.5" fill="white"/>
+                        <circle cx="9" cy="8" r="0.5" fill="white"/>
+                        <circle cx="5" cy="10" r="0.5" fill="white"/>
+                        <circle cx="7" cy="10" r="0.5" fill="white"/>
+                        <circle cx="9" cy="10" r="0.5" fill="white"/>
+                        <circle cx="5" cy="12" r="0.5" fill="white"/>
+                        <circle cx="7" cy="12" r="0.5" fill="white"/>
+                        <circle cx="9" cy="12" r="0.5" fill="white"/>
+                        <path d="M13 3l7 7-10 10H7v-3L17 7l-4-4z" fill="currentColor" opacity="0.9"/>
+                        <path d="M13 3l2 2-10 10v-2L15 3h-2z" fill="white" opacity="0.7"/>
+                    </svg>
+                </div>`;
+
+            const itemsHtml = quote.items.map(item => {
+                const itemTotal = item.price * item.quantity;
+                return `
+                    <tr class="border-b border-gray-200">
+                        <td class="py-3 px-2">
+                            <div class="font-medium text-gray-900">${item.name}</div>
+                            <div class="text-sm text-gray-600">${item.description}</div>
+                            ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                        </td>
+                        <td class="py-3 px-2 text-center">${item.quantity}</td>
+                        ${!hideLineItemPricing ? `
+                            <td class="py-3 px-2 text-right">$${item.price.toLocaleString()}</td>
+                            <td class="py-3 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
+                        ` : ''}
+                    </tr>
+                `;
+            }).join('');
+
+            const previewHtml = `
+                <div class="max-w-4xl mx-auto bg-white">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            ${logoHtml}
+                            <h1 class="text-2xl font-bold text-gray-900">${companyInfo.name}</h1>
+                            ${companyInfo.address ? `<p class="text-gray-600">${companyInfo.address.replace(/\n/g, '<br>')}</p>` : ''}
+                            ${companyInfo.phone ? `<p class="text-gray-600">${companyInfo.phone}</p>` : ''}
+                            ${companyInfo.email ? `<p class="text-gray-600">${companyInfo.email}</p>` : ''}
+                            ${companyInfo.website ? `<p class="text-gray-600">${companyInfo.website}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-3xl font-bold text-blue-600 mb-2">QUOTE</h2>
+                            <p class="text-gray-600">Date: ${new Date().toLocaleDateString()}</p>
+                            <p class="text-gray-600">Quote #: ${quote.id.toString().slice(-6)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Bill To:</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium text-gray-900">${customer.name}</p>
+                            <p class="text-gray-600">${customer.contact}</p>
+                            <p class="text-gray-600">${customer.email}</p>
+                            <p class="text-gray-600">${customer.phone}</p>
+                        </div>
+                    </div>
+
+                    <!-- Quote Title -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-gray-900">${quote.title}</h3>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="mb-8">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-100 border-b-2 border-gray-300">
+                                    <th class="py-3 px-2 text-left font-semibold text-gray-900">Description</th>
+                                    <th class="py-3 px-2 text-center font-semibold text-gray-900">Qty</th>
+                                    ${!hideLineItemPricing ? `
+                                        <th class="py-3 px-2 text-right font-semibold text-gray-900">Unit Price</th>
+                                        <th class="py-3 px-2 text-right font-semibold text-gray-900">Total</th>
+                                    ` : ''}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="flex justify-end mb-8">
+                        <div class="w-64">
+                            <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
+                                    <span class="text-2xl font-bold text-blue-600">$${total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    ${quote.notes ? `
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Additional Notes:</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-700">${quote.notes.replace(/\n/g, '<br>')}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Terms -->
+                    ${quoteSettings.defaultTerms ? `
+                        <div class="border-t pt-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Terms & Conditions:</h3>
+                            <p class="text-sm text-gray-600">${quoteSettings.defaultTerms.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Create a temporary preview container if it doesn't exist
+            let previewContainer = document.getElementById('quotePreviewContent');
+            if (!previewContainer) {
+                previewContainer = document.createElement('div');
+                previewContainer.id = 'quotePreviewContent';
+                previewContainer.style.position = 'absolute';
+                previewContainer.style.left = '-9999px';
+                previewContainer.style.top = '-9999px';
+                previewContainer.style.width = '800px';
+                previewContainer.className = 'quote-preview bg-white p-8';
+                document.body.appendChild(previewContainer);
+            }
+            
+            previewContainer.innerHTML = previewHtml;
+        }
+
+        // Customer Management
+        function renderCustomers() {
+            const container = document.getElementById('customersList');
+            const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
+            
+            const filteredCustomers = customers.filter(customer => 
+                customer.name.toLowerCase().includes(searchTerm) ||
+                customer.contact.toLowerCase().includes(searchTerm) ||
+                customer.email.toLowerCase().includes(searchTerm)
+            );
+
+            container.innerHTML = filteredCustomers.map(customer => `
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" class="customer-checkbox mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-customer-id="${customer.id}">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${customer.name}</h4>
+                            <p class="text-sm text-gray-600">${customer.contact}</p>
+                            <p class="text-sm text-blue-600">${customer.email}</p>
+                            <p class="text-sm text-gray-500">${customer.phone}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-customer-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-customer-id="${customer.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                            <button class="delete-customer-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-customer-id="${customer.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                            <button class="create-quote-btn text-green-500 hover:bg-green-50 p-2 rounded-lg" data-customer-id="${customer.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            updateQuoteCustomerSelect();
+            
+            // Add event listeners for checkboxes
+            container.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCustomerSelection);
+            });
+
+            // Add event listeners for buttons
+            container.querySelectorAll('.create-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const customerId = btn.dataset.customerId;
+                    openQuoteModal(customerId);
+                });
+            });
+
+            container.querySelectorAll('.edit-customer-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const customerId = parseInt(btn.dataset.customerId);
+                    const customer = customers.find(c => c.id === customerId);
+                    if (customer) {
+                        editingCustomerId = customerId;
+                        document.getElementById('customerModalTitle').textContent = 'Edit Customer';
+                        document.getElementById('customerName').value = customer.name;
+                        document.getElementById('customerContact').value = customer.contact;
+                        document.getElementById('customerEmail').value = customer.email;
+                        document.getElementById('customerPhone').value = customer.phone;
+                        showModal('customerModal');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.delete-customer-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const customerId = parseInt(btn.dataset.customerId);
+                    if (confirm('Are you sure you want to delete this customer?')) {
+                        customers = customers.filter(c => c.id !== customerId);
+                        renderCustomers();
+                        autoSave();
+                    }
+                });
+            });
+
+            // Update selection state
+            updateCustomerSelection();
+        }
+
+        function updateQuoteCustomerSelect() {
+            const select = document.getElementById('quoteCustomer');
+            select.innerHTML = '<option value="">Choose a customer...</option>' +
+                customers.map(customer => `<option value="${customer.id}">${customer.name}</option>`).join('');
+        }
+
+        // Items Management
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            const searchTerm = document.getElementById('itemSearch').value.toLowerCase();
+            
+            const filteredItems = items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.description.toLowerCase().includes(searchTerm)
+            );
+
+            container.innerHTML = filteredItems.map(item => `
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" class="item-checkbox mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-item-id="${item.id}">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${item.name}</h4>
+                            <p class="text-sm text-gray-600 mb-2">${item.description}</p>
+                            <p class="text-lg font-bold text-green-600">$${item.price.toLocaleString()}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-item-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-item-id="${item.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                            <button class="delete-item-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-item-id="${item.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            updateItemSelector();
+
+            // Add event listeners for checkboxes
+            container.querySelectorAll('.item-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateItemSelection);
+            });
+
+            // Add event listeners for buttons
+            container.querySelectorAll('.edit-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const itemId = parseInt(btn.dataset.itemId);
+                    const item = items.find(i => i.id === itemId);
+                    if (item) {
+                        editingItemId = itemId;
+                        document.getElementById('itemModalTitle').textContent = 'Edit Item';
+                        document.getElementById('itemName').value = item.name;
+                        document.getElementById('itemDescription').value = item.description;
+                        document.getElementById('itemPrice').value = item.price;
+                        showModal('itemModal');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.delete-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const itemId = parseInt(btn.dataset.itemId);
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        items = items.filter(i => i.id !== itemId);
+                        renderItems();
+                        autoSave();
+                    }
+                });
+            });
+
+            // Update selection state
+            updateItemSelection();
+        }
+
+        function updateItemSelector() {
+            const select = document.getElementById('itemSelector');
+            select.innerHTML = '<option value="">Select an item to add...</option>' +
+                items.map(item => `<option value="${item.id}">${item.name} - $${item.price.toLocaleString()}</option>`).join('');
+        }
+
+        // Dashboard Functions
+        function renderDashboard() {
+            renderAgingOverview();
+            renderFollowUpList();
+        }
+
+        function renderAgingTab() {
+            renderAgingOverviewDetailed();
+            renderFollowUpListDetailed();
+            renderAgingQuotesList();
+        }
+
+        function renderAgingOverview() {
+            const sentQuotes = quotes.filter(q => q.status === 'Sent');
+            const agingStats = {
+                fresh: 0,
+                warm: 0,
+                aging: 0,
+                stale: 0
+            };
+
+            sentQuotes.forEach(quote => {
+                const age = getQuoteAge(quote);
+                const category = getQuoteAgeCategory(age);
+                agingStats[category.category]++;
+            });
+
+            const container = document.getElementById('agingOverview');
+            
+            if (sentQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <p class="text-sm">No sent quotes to track</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-green-800">Fresh (≤7 days)</span>
+                            <span class="text-lg font-bold text-green-600">${agingStats.fresh}</span>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-yellow-800">Warm (8-14 days)</span>
+                            <span class="text-lg font-bold text-yellow-600">${agingStats.warm}</span>
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-orange-800">Aging (15-30 days)</span>
+                            <span class="text-lg font-bold text-orange-600">${agingStats.aging}</span>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-red-800">Stale (>30 days)</span>
+                            <span class="text-lg font-bold text-red-600">${agingStats.stale}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFollowUpList() {
+            const followUpQuotes = getQuotesNeedingFollowUp();
+            const container = document.getElementById('followUpList');
+
+            if (followUpQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <p class="text-sm">All caught up! No follow-ups needed.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = followUpQuotes.map(quote => {
+                const age = getQuoteAge(quote);
+                const ageCategory = getQuoteAgeCategory(age);
+                
+                return `
+                    <div class="bg-${ageCategory.color}-50 p-3 rounded-lg border border-${ageCategory.color}-200">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <h5 class="font-medium text-gray-800">${quote.title}</h5>
+                                <p class="text-sm text-gray-600">${quote.customer}</p>
+                                <p class="text-sm text-${ageCategory.color}-600 font-medium">${age} days old - ${ageCategory.label}</p>
+                            </div>
+                            <span class="text-sm font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="follow-up-btn flex-1 bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
+                                Mark Followed Up
+                            </button>
+                            <button class="schedule-follow-up-btn flex-1 bg-gray-500 text-white py-1 px-3 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
+                                Schedule Follow-Up
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners for follow-up buttons
+            container.querySelectorAll('.follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    markQuoteFollowedUp(quoteId);
+                });
+            });
+
+            container.querySelectorAll('.schedule-follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        scheduleFollowUp(quoteId, date);
+                    }
+                });
+            });
+        }
+
+        function renderAgingOverviewDetailed() {
+            const sentQuotes = quotes.filter(q => q.status === 'Sent');
+            const agingStats = {
+                fresh: { count: 0, value: 0, quotes: [] },
+                warm: { count: 0, value: 0, quotes: [] },
+                aging: { count: 0, value: 0, quotes: [] },
+                stale: { count: 0, value: 0, quotes: [] }
+            };
+
+            sentQuotes.forEach(quote => {
+                const age = getQuoteAge(quote);
+                const category = getQuoteAgeCategory(age);
+                agingStats[category.category].count++;
+                agingStats[category.category].value += quote.total;
+                agingStats[category.category].quotes.push(quote);
+            });
+
+            const container = document.getElementById('agingOverviewDetailed');
+            
+            if (sentQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <p class="text-sm">No sent quotes to track</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalValue = sentQuotes.reduce((sum, q) => sum + q.total, 0);
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-green-800">Fresh (≤7 days)</span>
+                            <span class="text-lg font-bold text-green-600">${agingStats.fresh.count}</span>
+                        </div>
+                        <div class="text-sm text-green-700">
+                            Total Value: $${agingStats.fresh.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-yellow-800">Warm (8-14 days)</span>
+                            <span class="text-lg font-bold text-yellow-600">${agingStats.warm.count}</span>
+                        </div>
+                        <div class="text-sm text-yellow-700">
+                            Total Value: $${agingStats.warm.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-orange-800">Aging (15-30 days)</span>
+                            <span class="text-lg font-bold text-orange-600">${agingStats.aging.count}</span>
+                        </div>
+                        <div class="text-sm text-orange-700">
+                            Total Value: $${agingStats.aging.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-red-800">Stale (>30 days)</span>
+                            <span class="text-lg font-bold text-red-600">${agingStats.stale.count}</span>
+                        </div>
+                        <div class="text-sm text-red-700">
+                            Total Value: $${agingStats.stale.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-blue-800">Total Outstanding</span>
+                            <span class="text-xl font-bold text-blue-600">$${totalValue.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFollowUpListDetailed() {
+            const followUpQuotes = getQuotesNeedingFollowUp();
+            const container = document.getElementById('followUpListDetailed');
+
+            if (followUpQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <p class="text-sm">All caught up!</p>
+                        <p class="text-xs text-gray-400">No follow-ups needed</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalValue = followUpQuotes.reduce((sum, q) => sum + q.total, 0);
+
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600">${followUpQuotes.length}</div>
+                            <div class="text-sm text-orange-800">Quotes Need Follow-Up</div>
+                            <div class="text-sm text-orange-700">$${totalValue.toLocaleString()} at risk</div>
+                        </div>
+                    </div>
+                    ${followUpQuotes.slice(0, 5).map(quote => {
+                        const age = getQuoteAge(quote);
+                        const ageCategory = getQuoteAgeCategory(age);
+                        
+                        return `
+                            <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-gray-800 text-sm">${quote.title}</h5>
+                                        <p class="text-xs text-gray-600">${quote.customer}</p>
+                                        <p class="text-xs text-${ageCategory.color}-600 font-medium">${age} days - ${ageCategory.label}</p>
+                                    </div>
+                                    <span class="text-sm font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button class="follow-up-detailed-btn flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
+                                        Follow Up
+                                    </button>
+                                    <button class="schedule-detailed-btn flex-1 bg-gray-500 text-white py-1 px-2 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
+                                        Schedule
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                    ${followUpQuotes.length > 5 ? `<div class="text-center text-sm text-gray-500">... and ${followUpQuotes.length - 5} more</div>` : ''}
+                </div>
+            `;
+
+            // Add event listeners
+            container.querySelectorAll('.follow-up-detailed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    markQuoteFollowedUp(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.schedule-detailed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        scheduleFollowUp(quoteId, date);
+                        renderAgingTab();
+                    }
+                });
+            });
+        }
+
+        function renderAgingQuotesList() {
+            const filter = document.getElementById('agingFilter')?.value || 'all';
+            let filteredQuotes = quotes.filter(q => q.status === 'Sent');
+            
+            if (filter !== 'all') {
+                if (filter === 'needsFollowUp') {
+                    const followUpQuotes = getQuotesNeedingFollowUp();
+                    filteredQuotes = filteredQuotes.filter(q => followUpQuotes.some(fq => fq.id === q.id));
+                } else {
+                    filteredQuotes = filteredQuotes.filter(quote => {
+                        const age = getQuoteAge(quote);
+                        const category = getQuoteAgeCategory(age);
+                        return category.category === filter;
+                    });
+                }
+            }
+
+            const container = document.getElementById('agingQuotesList');
+            
+            if (filteredQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <p class="text-sm">No quotes match the selected filter</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by age (oldest first)
+            filteredQuotes.sort((a, b) => getQuoteAge(b) - getQuoteAge(a));
+
+            container.innerHTML = filteredQuotes.map(quote => {
+                const age = getQuoteAge(quote);
+                const ageCategory = getQuoteAgeCategory(age);
+                const needsFollowUp = getQuotesNeedingFollowUp().some(q => q.id === quote.id);
+                
+                return `
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 ${needsFollowUp ? 'ring-2 ring-orange-300' : ''}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800">${quote.title}</h4>
+                                <p class="text-sm text-gray-600">${quote.customer}</p>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-${ageCategory.color}-100 text-${ageCategory.color}-800">${age} days - ${ageCategory.label}</span>
+                                    ${needsFollowUp ? '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">Follow-up Due</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-lg font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <div>Sent: ${quote.sentDate}</div>
+                                    ${quote.lastFollowUp ? `<div class="text-green-600">Last follow-up: ${quote.lastFollowUp}</div>` : ''}
+                                    ${quote.followUpDate ? `<div class="text-blue-600">Next: ${quote.followUpDate}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        ${needsFollowUp ? `
+                            <div class="flex space-x-2 mt-3">
+                                <button class="aging-follow-up-btn flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    Follow Up Now
+                                </button>
+                                <button class="aging-schedule-btn flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    Schedule Later
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners
+            container.querySelectorAll('.aging-follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    markQuoteFollowedUp(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.aging-schedule-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        scheduleFollowUp(quoteId, date);
+                        renderAgingTab();
+                    }
+                });
+            });
+        }
+
+        // Quote Management
+        function renderQuotes() {
+            const container = document.getElementById('quotesList');
+            
+            if (quotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p>No quotes yet</p>
+                        <p class="text-sm">Create your first quote to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = quotes.map(quote => {
+                const age = getQuoteAge(quote);
+                const ageCategory = getQuoteAgeCategory(age);
+                const needsFollowUp = getQuotesNeedingFollowUp().some(q => q.id === quote.id);
+                
+                return `
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 ${needsFollowUp ? 'ring-2 ring-orange-300' : ''}">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-800">${quote.title}</h4>
+                            <div class="flex space-x-2">
+                                ${quote.status === 'Sent' ? `<span class="px-2 py-1 text-xs rounded-full bg-${ageCategory.color}-100 text-${ageCategory.color}-800">${age}d - ${ageCategory.label}</span>` : ''}
+                                <span class="px-2 py-1 text-xs rounded-full ${quote.status === 'Sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${quote.status}</span>
+                                ${needsFollowUp ? '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">Follow-up Due</span>' : ''}
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">${quote.customer}</p>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-lg font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">Created: ${quote.date}</div>
+                                ${quote.sentDate ? `<div class="text-sm text-gray-500">Sent: ${quote.sentDate}</div>` : ''}
+                                ${quote.lastFollowUp ? `<div class="text-sm text-green-600">Last follow-up: ${quote.lastFollowUp}</div>` : ''}
+                                ${quote.followUpDate ? `<div class="text-sm text-blue-600">Next follow-up: ${quote.followUpDate}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-quote-btn flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                Edit
+                            </button>
+                            ${quote.status === 'Sent' ? `
+                                <button class="email-quote-btn flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📧 Email
+                                </button>
+                            ` : ''}
+                            ${quote.status === 'Sent' && needsFollowUp ? `
+                                <button class="follow-up-quote-btn flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    Follow Up
+                                </button>
+                            ` : ''}
+                            <button class="delete-quote-btn flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners
+            container.querySelectorAll('.edit-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    const quote = quotes.find(q => q.id === quoteId);
+                    if (quote) {
+                        editQuote(quote);
+                    }
+                });
+            });
+
+            container.querySelectorAll('.email-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    const quote = quotes.find(q => q.id === quoteId);
+                    if (quote) {
+                        openEmailForQuote(quote);
+                    }
+                });
+            });
+
+            container.querySelectorAll('.follow-up-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    const action = confirm('Mark as followed up now, or schedule for later?\n\nOK = Mark followed up now\nCancel = Schedule for later');
+                    
+                    if (action) {
+                        markQuoteFollowedUp(quoteId);
+                    } else {
+                        const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                        if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                            scheduleFollowUp(quoteId, date);
+                        }
+                    }
+                });
+            });
+
+            container.querySelectorAll('.delete-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    if (confirm('Are you sure you want to delete this quote?')) {
+                        quotes = quotes.filter(q => q.id !== quoteId);
+                        renderQuotes();
+                        renderDashboard();
+                        autoSave();
+                    }
+                });
+            });
+        }
+
+        function editQuote(quote) {
+            editingQuoteId = quote.id;
+            
+            document.getElementById('quoteModalTitle').textContent = 'Edit Quote';
+            document.getElementById('quoteCustomer').value = quote.customerInfo.id;
+            document.getElementById('quoteTitle').value = quote.title;
+            document.getElementById('quoteNotes').value = quote.notes || '';
+            
+            selectedQuoteItems = quote.items.map(item => ({...item}));
+            updateSelectedItems();
+            updateQuoteTotal();
+            
+            showModal('quoteModal');
+        }
+
+        // Data persistence functions
+        function loadDataFromLocalStorage() {
+            const savedCustomers = localStorage.getItem('quoteit-customers');
+            const savedItems = localStorage.getItem('quoteit-items');
+            const savedQuotes = localStorage.getItem('quoteit-quotes');
+            const savedCompanyInfo = localStorage.getItem('quoteit-company');
+            const savedQuoteSettings = localStorage.getItem('quoteit-settings');
+            
+            if (savedCustomers) customers = JSON.parse(savedCustomers);
+            if (savedItems) items = JSON.parse(savedItems);
+            if (savedQuotes) quotes = JSON.parse(savedQuotes);
+            if (savedCompanyInfo) companyInfo = JSON.parse(savedCompanyInfo);
+            if (savedQuoteSettings) quoteSettings = JSON.parse(savedQuoteSettings);
+        }
+
+        function autoSave() {
+            localStorage.setItem('quoteit-customers', JSON.stringify(customers));
+            localStorage.setItem('quoteit-items', JSON.stringify(items));
+            localStorage.setItem('quoteit-quotes', JSON.stringify(quotes));
+            localStorage.setItem('quoteit-company', JSON.stringify(companyInfo));
+            localStorage.setItem('quoteit-settings', JSON.stringify(quoteSettings));
+        }
+
+        function loadCompanySettings() {
+            document.getElementById('companyName').value = companyInfo.name || '';
+            document.getElementById('companyAddress').value = companyInfo.address || '';
+            document.getElementById('companyPhone').value = companyInfo.phone || '';
+            document.getElementById('companyEmail').value = companyInfo.email || '';
+            document.getElementById('companyWebsite').value = companyInfo.website || '';
+            document.getElementById('hideLineItemPricing').checked = quoteSettings.hideLineItemPricing;
+            document.getElementById('defaultTerms').value = quoteSettings.defaultTerms || '';
+            
+            // Load logo if exists
+            if (companyInfo.logo) {
+                document.getElementById('logoImage').src = companyInfo.logo;
+                document.getElementById('logoPreview').classList.remove('hidden');
+                document.getElementById('logoPlaceholder').classList.add('hidden');
+                document.getElementById('removeLogo').classList.remove('hidden');
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation Event Listeners
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    if (targetTab) {
+                        showTab(targetTab);
+                    }
+                });
+            });
+
+            // Dashboard navigation triggers
+            document.querySelectorAll('.nav-trigger').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    if (targetTab) {
+                        showTab(targetTab);
+                    }
+                });
+            });
+
+            // Menu navigation buttons
+            document.querySelectorAll('.menu-nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    if (targetTab) {
+                        showTab(targetTab);
+                        document.getElementById('menuDropdown').classList.add('hidden');
+                    }
+                });
+            });
+
+            // Quote creation buttons
+            document.getElementById('newQuoteBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                openQuoteModal();
+            });
+
+            document.getElementById('menuCreateQuote').addEventListener('click', (e) => {
+                e.preventDefault();
+                openQuoteModal();
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            document.querySelectorAll('.create-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openQuoteModal();
+                });
+            });
+
+            // Close modal functionality
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const modal = e.target.closest('.fixed');
+                    modal.classList.add('hidden');
+                });
+            });
+
+            // Menu dropdown functionality
+            document.getElementById('menuBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('menuDropdown');
+                dropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            // Theme switching
+            document.getElementById('lightTheme').addEventListener('click', () => {
+                currentTheme = 'light';
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            document.getElementById('darkTheme').addEventListener('click', () => {
+                currentTheme = 'dark';
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.body.classList.add('dark-theme');
+            }
+
+            // Quote modal event listeners
+            document.getElementById('itemSelector').addEventListener('change', (e) => {
+                const itemId = parseInt(e.target.value);
+                if (itemId) {
+                    const item = items.find(i => i.id === itemId);
+                    if (item && !selectedQuoteItems.find(si => si.id === itemId)) {
+                        selectedQuoteItems.push({
+                            ...item,
+                            quantity: 1
+                        });
+                        updateSelectedItems();
+                        updateQuoteTotal();
+                        e.target.value = '';
+                    }
+                }
+            });
+
+            document.getElementById('addCustomItem').addEventListener('click', () => {
+                const name = document.getElementById('customItemName').value.trim();
+                const price = parseFloat(document.getElementById('customItemPrice').value);
+                
+                if (name && price > 0) {
+                    selectedQuoteItems.push({
+                        id: Date.now(),
+                        name,
+                        description: 'Custom item',
+                        price,
+                        quantity: 1,
+                        isCustom: true
+                    });
+                    
+                    updateSelectedItems();
+                    updateQuoteTotal();
+                    
+                    document.getElementById('customItemName').value = '';
+                    document.getElementById('customItemPrice').value = '';
+                }
+            });
+
+            document.getElementById('previewQuote').addEventListener('click', () => {
+                generateQuotePreview();
+            });
+
+            document.getElementById('saveQuote').addEventListener('click', () => {
+                saveQuote('Draft');
+            });
+
+            document.getElementById('sendQuote').addEventListener('click', () => {
+                saveQuote('Sent');
+            });
+
+            document.getElementById('closeQuoteModal').addEventListener('click', () => {
+                hideModal('quoteModal');
+            });
+
+            // Preview modal
+            document.getElementById('closePreviewModal').addEventListener('click', () => {
+                hideModal('quotePreviewModal');
+            });
+
+            // PDF Download
+            document.getElementById('downloadPDF').addEventListener('click', () => {
+                const button = document.getElementById('downloadPDF');
+                const originalText = button.textContent;
+                button.textContent = '⏳ Generating...';
+                button.disabled = true;
+                
+                generateAndDownloadPDF().then((result) => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    alert(`✅ PDF downloaded successfully as "${result.filename}"`);
+                }).catch((error) => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    console.error('PDF generation error:', error);
+                    alert('❌ Failed to generate PDF. Please try again or check the console for details.');
+                });
+            });
+
+            // Logo upload
+            document.getElementById('logoUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('File size must be less than 2MB');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        companyInfo.logo = e.target.result;
+                        document.getElementById('logoImage').src = e.target.result;
+                        document.getElementById('logoPreview').classList.remove('hidden');
+                        document.getElementById('logoPlaceholder').classList.add('hidden');
+                        document.getElementById('removeLogo').classList.remove('hidden');
+                        autoSave();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('removeLogo').addEventListener('click', () => {
+                companyInfo.logo = '';
+                document.getElementById('logoImage').src = '';
+                document.getElementById('logoPreview').classList.add('hidden');
+                document.getElementById('logoPlaceholder').classList.remove('hidden');
+                document.getElementById('removeLogo').classList.add('hidden');
+                document.getElementById('logoUpload').value = '';
+                autoSave();
+            });
+
+            // Import/Export functionality
+            document.getElementById('importCustomersBtn').addEventListener('click', () => {
+                currentImportType = 'customers';
+                document.getElementById('importModalTitle').textContent = 'Import Customers';
+                document.getElementById('importInstructions').innerHTML = `
+                    <p class="font-medium mb-2">Required columns:</p>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>name</strong> - Company name</li>
+                        <li><strong>contact</strong> - Contact person</li>
+                        <li><strong>email</strong> - Email address</li>
+                        <li><strong>phone</strong> - Phone number</li>
+                    </ul>
+                `;
+                showModal('importModal');
+            });
+
+            document.getElementById('importItemsBtn').addEventListener('click', () => {
+                currentImportType = 'items';
+                document.getElementById('importModalTitle').textContent = 'Import Items';
+                document.getElementById('importInstructions').innerHTML = `
+                    <p class="font-medium mb-2">Required columns:</p>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>name</strong> - Item name</li>
+                        <li><strong>description</strong> - Item description</li>
+                        <li><strong>price</strong> - Item price (number)</li>
+                    </ul>
+                `;
+                showModal('importModal');
+            });
+
+            document.getElementById('exportCustomersBtn').addEventListener('click', () => {
+                const exportData = customers.map(c => ({
+                    name: c.name,
+                    contact: c.contact,
+                    email: c.email,
+                    phone: c.phone
+                }));
+                exportToExcel(exportData, 'customers.xlsx', ['name', 'contact', 'email', 'phone']);
+            });
+
+            document.getElementById('exportItemsBtn').addEventListener('click', () => {
+                const exportData = items.map(i => ({
+                    name: i.name,
+                    description: i.description,
+                    price: i.price
+                }));
+                exportToExcel(exportData, 'items.xlsx', ['name', 'description', 'price']);
+            });
+
+            document.getElementById('importFile').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                document.getElementById('processImport').disabled = !file;
+            });
+
+            document.getElementById('processImport').addEventListener('click', () => {
+                const file = document.getElementById('importFile').files[0];
+                if (!file) return;
+
+                parseExcelFile(file, (error, data) => {
+                    if (error) {
+                        alert('Error reading file: ' + error.message);
+                        return;
+                    }
+
+                    if (currentImportType === 'customers') {
+                        let imported = 0;
+                        data.forEach(row => {
+                            if (row.name && row.contact && row.email) {
+                                customers.push({
+                                    id: Date.now() + Math.random(),
+                                    name: row.name,
+                                    contact: row.contact,
+                                    email: row.email,
+                                    phone: row.phone || ''
+                                });
+                                imported++;
+                            }
+                        });
+                        renderCustomers();
+                        alert(`Successfully imported ${imported} customers`);
+                    } else if (currentImportType === 'items') {
+                        let imported = 0;
+                        data.forEach(row => {
+                            if (row.name && row.description && row.price) {
+                                items.push({
+                                    id: Date.now() + Math.random(),
+                                    name: row.name,
+                                    description: row.description,
+                                    price: parseFloat(row.price) || 0
+                                });
+                                imported++;
+                            }
+                        });
+                        renderItems();
+                        alert(`Successfully imported ${imported} items`);
+                    }
+
+                    autoSave();
+                    hideModal('importModal');
+                    document.getElementById('importFile').value = '';
+                    document.getElementById('processImport').disabled = true;
+                });
+            });
+
+            // Customer modal
+            document.getElementById('addCustomerBtn').addEventListener('click', () => {
+                editingCustomerId = null;
+                document.getElementById('customerModalTitle').textContent = 'Add Customer';
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerContact').value = '';
+                document.getElementById('customerEmail').value = '';
+                document.getElementById('customerPhone').value = '';
+                showModal('customerModal');
+            });
+
+            document.getElementById('saveCustomer').addEventListener('click', () => {
+                const name = document.getElementById('customerName').value.trim();
+                const contact = document.getElementById('customerContact').value.trim();
+                const email = document.getElementById('customerEmail').value.trim();
+                const phone = document.getElementById('customerPhone').value.trim();
+
+                if (name && contact && email) {
+                    if (editingCustomerId) {
+                        const customerIndex = customers.findIndex(c => c.id === editingCustomerId);
+                        if (customerIndex !== -1) {
+                            customers[customerIndex] = {
+                                id: editingCustomerId,
+                                name,
+                                contact,
+                                email,
+                                phone
+                            };
+                        }
+                    } else {
+                        const newCustomer = {
+                            id: Date.now(),
+                            name,
+                            contact,
+                            email,
+                            phone
+                        };
+                        customers.push(newCustomer);
+                    }
+                    
+                    renderCustomers();
+                    autoSave();
+                    
+                    document.getElementById('customerName').value = '';
+                    document.getElementById('customerContact').value = '';
+                    document.getElementById('customerEmail').value = '';
+                    document.getElementById('customerPhone').value = '';
+                    editingCustomerId = null;
+                    
+                    hideModal('customerModal');
+                }
+            });
+
+            // Item modal
+            document.getElementById('addItemBtn').addEventListener('click', () => {
+                editingItemId = null;
+                document.getElementById('itemModalTitle').textContent = 'Add Item';
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemDescription').value = '';
+                document.getElementById('itemPrice').value = '';
+                showModal('itemModal');
+            });
+
+            document.getElementById('saveItem').addEventListener('click', () => {
+                const name = document.getElementById('itemName').value.trim();
+                const description = document.getElementById('itemDescription').value.trim();
+                const price = parseFloat(document.getElementById('itemPrice').value);
+
+                if (name && description && price > 0) {
+                    if (editingItemId) {
+                        const itemIndex = items.findIndex(i => i.id === editingItemId);
+                        if (itemIndex !== -1) {
+                            items[itemIndex] = {
+                                id: editingItemId,
+                                name,
+                                description,
+                                price
+                            };
+                        }
+                    } else {
+                        const newItem = {
+                            id: Date.now(),
+                            name,
+                            description,
+                            price
+                        };
+                        items.push(newItem);
+                    }
+                    
+                    renderItems();
+                    autoSave();
+                    
+                    document.getElementById('itemName').value = '';
+                    document.getElementById('itemDescription').value = '';
+                    document.getElementById('itemPrice').value = '';
+                    editingItemId = null;
+                    
+                    hideModal('itemModal');
+                }
+            });
+
+            // Settings
+            document.getElementById('saveCompanyInfo').addEventListener('click', () => {
+                companyInfo.name = document.getElementById('companyName').value.trim();
+                companyInfo.address = document.getElementById('companyAddress').value.trim();
+                companyInfo.phone = document.getElementById('companyPhone').value.trim();
+                companyInfo.email = document.getElementById('companyEmail').value.trim();
+                companyInfo.website = document.getElementById('companyWebsite').value.trim();
+                autoSave();
+                alert('Company information saved successfully!');
+            });
+
+            document.getElementById('saveQuoteSettings').addEventListener('click', () => {
+                quoteSettings.hideLineItemPricing = document.getElementById('hideLineItemPricing').checked;
+                quoteSettings.defaultTerms = document.getElementById('defaultTerms').value.trim();
+                autoSave();
+                alert('Quote settings saved successfully!');
+            });
+
+            // Bulk selection event listeners
+            document.getElementById('selectAllCustomers').addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.customer-checkbox');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                updateCustomerSelection();
+            });
+
+            document.getElementById('selectAllItems').addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.item-checkbox');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                updateItemSelection();
+            });
+
+            document.getElementById('deleteSelectedCustomers').addEventListener('click', deleteSelectedCustomers);
+            document.getElementById('deleteSelectedItems').addEventListener('click', deleteSelectedItems);
+
+            // Search functionality
+            document.getElementById('customerSearch').addEventListener('input', renderCustomers);
+            document.getElementById('itemSearch').addEventListener('input', renderItems);
+
+            // Aging filter
+            document.getElementById('agingFilter')?.addEventListener('change', () => {
+                renderAgingQuotesList();
+            });
+
+            // Initialize data and UI
+            loadDataFromLocalStorage();
+            loadCompanySettings();
+            renderCustomers();
+            renderItems();
+            renderQuotes();
+            renderDashboard();
+            renderAgingTab();
+            
+            // Auto-save data periodically
+            setInterval(autoSave, 30000); // Save every 30 seconds
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ca3f565378744a',t:'MTc1NzQ1ODI1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
