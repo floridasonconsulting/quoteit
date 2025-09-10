@@ -17,9 +17,9 @@
     <link rel="manifest" href="#" id="manifest-placeholder">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="console.warn('jsPDF failed to load')"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onerror="console.warn('html2canvas failed to load')"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="console.warn('XLSX failed to load')"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
@@ -220,6 +220,13 @@
             </div>
         </div>
     </nav>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="fixed bottom-6 right-6 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-all transform hover:scale-110 z-40 hidden">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        </svg>
+    </button>
 
     <!-- Main Content -->
     <main class="px-4 py-6" id="mainContent">
@@ -841,12 +848,15 @@
 
         function deleteSelectedItems() {
             const selectedIds = Array.from(document.querySelectorAll('.item-checkbox:checked'))
-                .map(cb => parseInt(cb.dataset.itemId));
+                .map(cb => parseFloat(cb.dataset.itemId)); // Use parseFloat to handle decimal IDs
             
             if (selectedIds.length === 0) return;
             
             if (confirm(`Are you sure you want to delete ${selectedIds.length} item(s)?`)) {
-                items = items.filter(i => !selectedIds.includes(i.id));
+                items = items.filter(i => {
+                    // Use epsilon comparison for floating point IDs
+                    return !selectedIds.some(selectedId => Math.abs(i.id - selectedId) < 0.0001);
+                });
                 renderItems();
                 autoSave();
             }
@@ -1144,7 +1154,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
 
                     <!-- Customer Info -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Bill To:</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Prepared For:</h3>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <p class="font-medium text-gray-900">${customer.name}</p>
                             <p class="text-gray-600">${customer.contact}</p>
@@ -1397,18 +1407,34 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                     return;
                 }
 
-                // Verify jsPDF is loaded
-                if (!window.jspdf || !window.jspdf.jsPDF) {
-                    reject(new Error('PDF library not loaded. Please refresh the page and try again.'));
-                    return;
-                }
+                // Check if libraries are loaded with timeout
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                const checkLibraries = () => {
+                    attempts++;
+                    
+                    if (window.jspdf && window.jspdf.jsPDF && window.html2canvas) {
+                        // Libraries are loaded, proceed
+                        generatePDFContent(element, filename, resolve, reject);
+                        return;
+                    }
+                    
+                    if (attempts >= maxAttempts) {
+                        reject(new Error('PDF libraries failed to load after multiple attempts. Please refresh the page and try again.'));
+                        return;
+                    }
+                    
+                    // Wait and try again
+                    setTimeout(checkLibraries, 500);
+                };
+                
+                checkLibraries();
+            });
+        }
 
-                // Verify html2canvas is loaded
-                if (!window.html2canvas) {
-                    reject(new Error('Canvas library not loaded. Please refresh the page and try again.'));
-                    return;
-                }
-
+        function generatePDFContent(element, filename, resolve, reject) {
+            try {
                 console.log('Starting PDF generation...');
 
                 // Create a clean container for PDF generation
@@ -1773,7 +1799,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
 
                     <!-- Customer Info -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Bill To:</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Prepared For:</h3>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <p class="font-medium text-gray-900">${customer.name}</p>
                             <p class="text-gray-600">${customer.contact}</p>
@@ -2092,7 +2118,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             container.querySelectorAll('.edit-item-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const itemId = parseInt(btn.dataset.itemId);
+                    const itemId = parseFloat(btn.dataset.itemId); // Use parseFloat to handle decimal IDs
                     const item = items.find(i => i.id === itemId);
                     if (item) {
                         editingItemId = itemId;
@@ -2128,9 +2154,17 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             container.querySelectorAll('.delete-item-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const itemId = parseInt(btn.dataset.itemId);
+                    const itemId = parseFloat(btn.dataset.itemId); // Use parseFloat to handle decimal IDs
+                    console.log('Deleting item with ID:', itemId, 'Type:', typeof itemId);
                     if (confirm('Are you sure you want to delete this item?')) {
-                        items = items.filter(i => i.id !== itemId);
+                        const originalLength = items.length;
+                        items = items.filter(i => {
+                            // Use epsilon comparison for floating point IDs
+                            const isMatch = Math.abs(i.id - itemId) < 0.0001;
+                            console.log('Comparing:', i.id, 'with', itemId, 'Match:', isMatch, 'Keep:', !isMatch);
+                            return !isMatch; // Keep items that DON'T match
+                        });
+                        console.log('Items before:', originalLength, 'Items after:', items.length);
                         renderItems();
                         autoSave();
                     }
@@ -2209,7 +2243,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             // Add event listeners for item selection
             container.querySelectorAll('.item-select-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const itemId = parseInt(e.currentTarget.dataset.itemId);
+                    const itemId = parseFloat(e.currentTarget.dataset.itemId); // Use parseFloat to handle decimal IDs
                     const item = items.find(i => i.id === itemId);
                     
                     if (item && !selectedQuoteItems.find(si => si.id === itemId)) {
@@ -2813,31 +2847,22 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             // Navigation Event Listeners
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-                    if (targetTab) {
-                        showTab(targetTab);
-                    }
+                    showTab(this.dataset.tab);
                 });
             });
 
             // Dashboard navigation triggers
             document.querySelectorAll('.nav-trigger').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-                    if (targetTab) {
-                        showTab(targetTab);
-                    }
+                    showTab(this.dataset.tab);
                 });
             });
 
             // Menu navigation buttons
             document.querySelectorAll('.menu-nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-                    if (targetTab) {
-                        showTab(targetTab);
-                        document.getElementById('menuDropdown').classList.add('hidden');
-                    }
+                    showTab(this.dataset.tab);
+                    document.getElementById('menuDropdown').classList.add('hidden');
                 });
             });
 
@@ -3030,6 +3055,10 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             });
 
             document.getElementById('exportCustomersBtn').addEventListener('click', () => {
+                if (!window.XLSX) {
+                    alert('Excel library not loaded. Please refresh the page and try again.');
+                    return;
+                }
                 const exportData = customers.map(c => ({
                     name: c.name,
                     contact: c.contact,
@@ -3040,6 +3069,10 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             });
 
             document.getElementById('exportItemsBtn').addEventListener('click', () => {
+                if (!window.XLSX) {
+                    alert('Excel library not loaded. Please refresh the page and try again.');
+                    return;
+                }
                 const exportData = items.map(i => ({
                     name: i.name,
                     category: i.category || 'Uncategorized',
@@ -3057,6 +3090,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             document.getElementById('processImport').addEventListener('click', () => {
                 const file = document.getElementById('importFile').files[0];
                 if (!file) return;
+
+                // Check if XLSX library is loaded
+                if (!window.XLSX) {
+                    alert('Excel library not loaded. Please refresh the page and try again.');
+                    return;
+                }
 
                 parseExcelFile(file, (error, data) => {
                     if (error) {
@@ -3082,14 +3121,18 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                         alert(`Successfully imported ${imported} customers`);
                     } else if (currentImportType === 'items') {
                         let imported = 0;
-                        data.forEach(row => {
+                        data.forEach((row, index) => {
                             if (row.name && row.description && row.price) {
+                                const basePrice = parseFloat(row.price) || 0;
                                 items.push({
-                                    id: Date.now() + Math.random(),
+                                    id: Date.now() + Math.random() + index, // Ensure unique IDs
                                     name: row.name,
                                     category: row.category || 'Uncategorized',
                                     description: row.description,
-                                    price: parseFloat(row.price) || 0
+                                    basePrice: basePrice,
+                                    price: basePrice,
+                                    markupType: 'none',
+                                    markupValue: 0
                                 });
                                 imported++;
                             }
@@ -3313,6 +3356,24 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 renderAgingQuotesList();
             });
 
+            // Scroll to top functionality
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('hidden');
+                } else {
+                    scrollToTopBtn.classList.add('hidden');
+                }
+            });
+            
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
             // Initialize data and UI
             loadDataFromLocalStorage();
             loadCompanySettings();
@@ -3322,9 +3383,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             renderDashboard();
             renderAgingTab();
             
+            // Show dashboard by default
+            showTab('dashboard');
+            
             // Auto-save data periodically
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ce70d9f1320efd',t:'MTc1NzUwMjIyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d23b92669c9abd',t:'MTc1NzU0MTk4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
