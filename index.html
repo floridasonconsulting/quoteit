@@ -523,9 +523,9 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Add Items</label>
                         <div class="space-y-2">
-                            <select id="itemSelector" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Select an item to add...</option>
-                            </select>
+                            <div id="itemCategoriesContainer" class="border border-gray-300 rounded-lg max-h-48 overflow-y-auto">
+                                <!-- Categorized items will appear here -->
+                            </div>
                             <div id="selectedItems" class="space-y-2">
                                 <!-- Selected items will appear here -->
                             </div>
@@ -622,8 +622,35 @@
                 </div>
                 <div class="p-4 space-y-4">
                     <input type="text" id="itemName" placeholder="Item Name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="itemCategory" placeholder="Category (e.g., Web Services, Marketing)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     <textarea id="itemDescription" placeholder="Description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-20 resize-none"></textarea>
-                    <input type="number" id="itemPrice" placeholder="Price" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="number" id="itemPrice" placeholder="Base Price" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    
+                    <!-- Markup Section -->
+                    <div class="border-t pt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price Markup (Optional)</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" id="markupNone" name="markupType" value="none" checked class="text-blue-600 focus:ring-blue-500">
+                                <label for="markupNone" class="text-sm text-gray-700">No markup</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" id="markupPercent" name="markupType" value="percent" class="text-blue-600 focus:ring-blue-500">
+                                <label for="markupPercent" class="text-sm text-gray-700">Percentage:</label>
+                                <input type="number" id="markupPercentValue" placeholder="%" step="0.1" min="0" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500" disabled>
+                                <span class="text-sm text-gray-500">%</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" id="markupFixed" name="markupType" value="fixed" class="text-blue-600 focus:ring-blue-500">
+                                <label for="markupFixed" class="text-sm text-gray-700">Fixed amount:</label>
+                                <input type="number" id="markupFixedValue" placeholder="0.00" step="0.01" min="0" class="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500" disabled>
+                            </div>
+                        </div>
+                        <div id="finalPricePreview" class="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-800 hidden">
+                            <strong>Final Price: $<span id="finalPriceAmount">0.00</span></strong>
+                        </div>
+                    </div>
+                    
                     <button id="saveItem" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
                         Add Item
                     </button>
@@ -704,10 +731,10 @@
         ];
 
         let items = [
-            { id: 1, name: "Website Development", description: "Custom website design and development", price: 5000 },
-            { id: 2, name: "SEO Optimization", description: "Search engine optimization package", price: 1500 },
-            { id: 3, name: "Mobile App Development", description: "Native mobile application", price: 8000 },
-            { id: 4, name: "Consulting Services", description: "Technical consulting per hour", price: 150 }
+            { id: 1, name: "Website Development", description: "Custom website design and development", price: 5000, category: "Web Services", basePrice: 5000, markupType: "none", markupValue: 0 },
+            { id: 2, name: "SEO Optimization", description: "Search engine optimization package", price: 1500, category: "Marketing", basePrice: 1500, markupType: "none", markupValue: 0 },
+            { id: 3, name: "Mobile App Development", description: "Native mobile application", price: 8000, category: "Development", basePrice: 8000, markupType: "none", markupValue: 0 },
+            { id: 4, name: "Consulting Services", description: "Technical consulting per hour", price: 150, category: "Consulting", basePrice: 150, markupType: "none", markupValue: 0 }
         ];
 
         let quotes = [
@@ -825,6 +852,44 @@
             }
         }
 
+        // Markup calculation functions
+        function calculateFinalPrice(basePrice, markupType, markupValue) {
+            if (!basePrice || basePrice <= 0) return 0;
+            
+            switch (markupType) {
+                case 'percent':
+                    return basePrice * (1 + (markupValue || 0) / 100);
+                case 'fixed':
+                    return basePrice + (markupValue || 0);
+                case 'none':
+                default:
+                    return basePrice;
+            }
+        }
+
+        function updateItemPricePreview() {
+            const basePrice = parseFloat(document.getElementById('itemPrice').value) || 0;
+            const markupType = document.querySelector('input[name="markupType"]:checked').value;
+            let markupValue = 0;
+            
+            if (markupType === 'percent') {
+                markupValue = parseFloat(document.getElementById('markupPercentValue').value) || 0;
+            } else if (markupType === 'fixed') {
+                markupValue = parseFloat(document.getElementById('markupFixedValue').value) || 0;
+            }
+            
+            const finalPrice = calculateFinalPrice(basePrice, markupType, markupValue);
+            const previewDiv = document.getElementById('finalPricePreview');
+            const amountSpan = document.getElementById('finalPriceAmount');
+            
+            if (basePrice > 0 && markupType !== 'none' && markupValue > 0) {
+                amountSpan.textContent = finalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                previewDiv.classList.remove('hidden');
+            } else {
+                previewDiv.classList.add('hidden');
+            }
+        }
+
         // Quote Aging Functions
         function getQuoteAge(quote) {
             if (!quote.sentDate) return 0;
@@ -882,6 +947,76 @@
                 autoSave();
                 renderQuotes();
                 renderDashboard();
+            }
+        }
+
+        function callCustomer(quoteId) {
+            const quote = quotes.find(q => q.id === quoteId);
+            if (quote && quote.customerInfo && quote.customerInfo.phone) {
+                // Clean phone number for tel: link
+                const cleanPhone = quote.customerInfo.phone.replace(/[^\d+]/g, '');
+                window.location.href = `tel:${cleanPhone}`;
+                
+                // Mark as followed up after a short delay to allow the call to initiate
+                setTimeout(() => {
+                    markQuoteFollowedUp(quoteId);
+                    alert(`📞 Call initiated to ${quote.customerInfo.contact} at ${quote.customerInfo.phone}\n\nFollow-up marked as complete!`);
+                }, 1000);
+            } else {
+                alert('No phone number available for this customer.');
+            }
+        }
+
+        function emailCustomerFollowUp(quoteId) {
+            const quote = quotes.find(q => q.id === quoteId);
+            if (quote && quote.customerInfo && quote.customerInfo.email) {
+                const customer = quote.customerInfo;
+                const quoteNumber = quote.id.toString().slice(-6);
+                const age = getQuoteAge(quote);
+                
+                // Email subject
+                const subject = encodeURIComponent(`Following up on Quote #${quoteNumber} - ${quote.title}`);
+                
+                // Email body
+                const body = encodeURIComponent(`Dear ${customer.contact},
+
+I hope this message finds you well. I wanted to follow up on the quote we sent you ${age} days ago for ${quote.title}.
+
+Quote Details:
+- Quote Number: #${quoteNumber}
+- Total Amount: $${quote.total.toLocaleString()}
+- Original Date: ${quote.sentDate}
+
+I wanted to check if you had any questions about the proposal or if there's anything I can clarify for you. We're here to help and would love to discuss how we can move forward with this project.
+
+Please feel free to reach out if you'd like to discuss any aspects of the quote or if you need any modifications.
+
+Looking forward to hearing from you soon!
+
+Best regards,
+${companyInfo.name}
+${companyInfo.phone ? `Phone: ${companyInfo.phone}` : ''}
+${companyInfo.email ? `Email: ${companyInfo.email}` : ''}
+${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
+
+                // Build mailto URL
+                let mailtoUrl = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+                
+                // Add CC if company email is provided and different from customer email
+                if (companyInfo.email && companyInfo.email !== customer.email) {
+                    mailtoUrl += `&cc=${encodeURIComponent(companyInfo.email)}`;
+                }
+                
+                // Open email client
+                window.location.href = mailtoUrl;
+                
+                // Mark as followed up after a short delay to allow the email to open
+                setTimeout(() => {
+                    markQuoteFollowedUp(quoteId);
+                    alert(`📧 Follow-up email opened for ${customer.contact}\n\nFollow-up marked as complete!`);
+                }, 1000);
+            } else {
+                alert('No email address available for this customer.');
             }
         }
 
@@ -943,21 +1078,48 @@
                     </svg>
                 </div>`;
 
-            const itemsHtml = selectedQuoteItems.map(item => {
-                const itemTotal = item.price * item.quantity;
+            // Group items by category
+            const itemsByCategory = {};
+            selectedQuoteItems.forEach(item => {
+                const category = item.category || 'Services';
+                if (!itemsByCategory[category]) {
+                    itemsByCategory[category] = [];
+                }
+                itemsByCategory[category].push(item);
+            });
+
+            const itemsHtml = Object.keys(itemsByCategory).sort().map(categoryName => {
+                const categoryItems = itemsByCategory[categoryName];
+                const categoryTotal = categoryItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                const categoryItemsHtml = categoryItems.map(item => {
+                    const itemTotal = item.price * item.quantity;
+                    return `
+                        <tr class="border-b border-gray-100">
+                            <td class="py-2 px-4 pl-6">
+                                <div class="font-medium text-gray-900">${item.name}</div>
+                                <div class="text-sm text-gray-600">${item.description}</div>
+                                ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                            </td>
+                            <td class="py-2 px-2 text-center">${item.quantity}</td>
+                            ${!hideLineItemPricing ? `
+                                <td class="py-2 px-2 text-right">$${item.price.toLocaleString()}</td>
+                                <td class="py-2 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
+                            ` : ''}
+                        </tr>
+                    `;
+                }).join('');
+
                 return `
-                    <tr class="border-b border-gray-200">
-                        <td class="py-3 px-2">
-                            <div class="font-medium text-gray-900">${item.name}</div>
-                            <div class="text-sm text-gray-600">${item.description}</div>
-                            ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                    <tr class="bg-blue-50 border-b-2 border-blue-200">
+                        <td class="py-3 px-2 font-bold text-blue-900" colspan="${hideLineItemPricing ? '2' : '4'}">
+                            <div class="flex justify-between items-center">
+                                <span>${categoryName}</span>
+                                ${!hideLineItemPricing ? `<span class="text-blue-700">$${categoryTotal.toLocaleString()}</span>` : ''}
+                            </div>
                         </td>
-                        <td class="py-3 px-2 text-center">${item.quantity}</td>
-                        ${!hideLineItemPricing ? `
-                            <td class="py-3 px-2 text-right">$${item.price.toLocaleString()}</td>
-                            <td class="py-3 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
-                        ` : ''}
                     </tr>
+                    ${categoryItemsHtml}
                 `;
             }).join('');
 
@@ -1545,21 +1707,48 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     </svg>
                 </div>`;
 
-            const itemsHtml = quote.items.map(item => {
-                const itemTotal = item.price * item.quantity;
+            // Group items by category
+            const itemsByCategory = {};
+            quote.items.forEach(item => {
+                const category = item.category || 'Services';
+                if (!itemsByCategory[category]) {
+                    itemsByCategory[category] = [];
+                }
+                itemsByCategory[category].push(item);
+            });
+
+            const itemsHtml = Object.keys(itemsByCategory).sort().map(categoryName => {
+                const categoryItems = itemsByCategory[categoryName];
+                const categoryTotal = categoryItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                const categoryItemsHtml = categoryItems.map(item => {
+                    const itemTotal = item.price * item.quantity;
+                    return `
+                        <tr class="border-b border-gray-100">
+                            <td class="py-2 px-4 pl-6">
+                                <div class="font-medium text-gray-900">${item.name}</div>
+                                <div class="text-sm text-gray-600">${item.description}</div>
+                                ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                            </td>
+                            <td class="py-2 px-2 text-center">${item.quantity}</td>
+                            ${!hideLineItemPricing ? `
+                                <td class="py-2 px-2 text-right">$${item.price.toLocaleString()}</td>
+                                <td class="py-2 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
+                            ` : ''}
+                        </tr>
+                    `;
+                }).join('');
+
                 return `
-                    <tr class="border-b border-gray-200">
-                        <td class="py-3 px-2">
-                            <div class="font-medium text-gray-900">${item.name}</div>
-                            <div class="text-sm text-gray-600">${item.description}</div>
-                            ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                    <tr class="bg-blue-50 border-b-2 border-blue-200">
+                        <td class="py-3 px-2 font-bold text-blue-900" colspan="${hideLineItemPricing ? '2' : '4'}">
+                            <div class="flex justify-between items-center">
+                                <span>${categoryName}</span>
+                                ${!hideLineItemPricing ? `<span class="text-blue-700">$${categoryTotal.toLocaleString()}</span>` : ''}
+                            </div>
                         </td>
-                        <td class="py-3 px-2 text-center">${item.quantity}</td>
-                        ${!hideLineItemPricing ? `
-                            <td class="py-3 px-2 text-right">$${item.price.toLocaleString()}</td>
-                            <td class="py-3 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
-                        ` : ''}
                     </tr>
+                    ${categoryItemsHtml}
                 `;
             }).join('');
 
@@ -1769,35 +1958,130 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             
             const filteredItems = items.filter(item => 
                 item.name.toLowerCase().includes(searchTerm) ||
-                item.description.toLowerCase().includes(searchTerm)
+                item.description.toLowerCase().includes(searchTerm) ||
+                (item.category || 'Uncategorized').toLowerCase().includes(searchTerm)
             );
 
-            container.innerHTML = filteredItems.map(item => `
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <div class="flex items-start space-x-3">
-                        <input type="checkbox" class="item-checkbox mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-item-id="${item.id}">
-                        <div class="flex-1">
-                            <h4 class="font-semibold text-gray-800">${item.name}</h4>
-                            <p class="text-sm text-gray-600 mb-2">${item.description}</p>
-                            <p class="text-lg font-bold text-green-600">$${item.price.toLocaleString()}</p>
+            // Group items by category
+            const itemsByCategory = {};
+            filteredItems.forEach(item => {
+                const category = item.category || 'Uncategorized';
+                if (!itemsByCategory[category]) {
+                    itemsByCategory[category] = [];
+                }
+                itemsByCategory[category].push(item);
+            });
+
+            // Sort categories alphabetically, but put 'Uncategorized' last
+            const sortedCategories = Object.keys(itemsByCategory).sort((a, b) => {
+                if (a === 'Uncategorized') return 1;
+                if (b === 'Uncategorized') return -1;
+                return a.localeCompare(b);
+            });
+
+            if (sortedCategories.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <p>No items found</p>
+                        <p class="text-sm">Try adjusting your search or add new items</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sortedCategories.map(categoryName => {
+                const categoryItems = itemsByCategory[categoryName];
+                const categoryId = categoryName.replace(/\s+/g, '-').toLowerCase();
+                const categoryTotal = categoryItems.reduce((sum, item) => {
+                    const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                    return sum + finalPrice;
+                }, 0);
+
+                const categoryItemsHtml = categoryItems.map(item => {
+                    const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                    const hasMarkup = item.markupType && item.markupType !== 'none' && item.markupValue > 0;
+                    
+                    return `
+                        <div class="bg-white p-4 rounded-lg border border-gray-200 ml-4">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" class="item-checkbox mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-item-id="${item.id}">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <h4 class="font-semibold text-gray-800">${item.name}</h4>
+                                        ${hasMarkup ? '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Markup Applied</span>' : ''}
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">${item.description}</p>
+                                    <div class="space-y-1">
+                                        ${hasMarkup ? `<p class="text-sm text-gray-500">Base: $${(item.basePrice || item.price).toLocaleString()}</p>` : ''}
+                                        <p class="text-lg font-bold text-green-600">$${finalPrice.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="edit-item-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-item-id="${item.id}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="delete-item-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-item-id="${item.id}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex space-x-2">
-                            <button class="edit-item-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-item-id="${item.id}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
-                            <button class="delete-item-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-item-id="${item.id}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="category-section mb-6">
+                        <div class="category-header bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 rounded-t-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <button type="button" class="category-toggle-items flex items-center space-x-2" data-category="${categoryId}">
+                                        <svg class="w-5 h-5 transform transition-transform category-arrow-items" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        <h3 class="text-lg font-semibold">${categoryName}</h3>
+                                    </button>
+                                    <span class="bg-white bg-opacity-20 px-2 py-1 rounded-full text-sm">${categoryItems.length} item${categoryItems.length !== 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm opacity-90">Category Total</div>
+                                    <div class="text-xl font-bold">$${categoryTotal.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="category-items-list bg-gray-50 rounded-b-lg border-l-4 border-r-4 border-b-4 border-blue-500" data-category="${categoryId}">
+                            <div class="p-4 space-y-3">
+                                ${categoryItemsHtml}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             updateItemSelector();
+
+            // Add event listeners for category toggles
+            container.querySelectorAll('.category-toggle-items').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    const categoryId = e.currentTarget.dataset.category;
+                    const itemsContainer = container.querySelector(`[data-category="${categoryId}"].category-items-list`);
+                    const arrow = e.currentTarget.querySelector('.category-arrow-items');
+                    
+                    if (itemsContainer.classList.contains('hidden')) {
+                        itemsContainer.classList.remove('hidden');
+                        arrow.style.transform = 'rotate(90deg)';
+                    } else {
+                        itemsContainer.classList.add('hidden');
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
 
             // Add event listeners for checkboxes
             container.querySelectorAll('.item-checkbox').forEach(checkbox => {
@@ -1814,8 +2098,28 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                         editingItemId = itemId;
                         document.getElementById('itemModalTitle').textContent = 'Edit Item';
                         document.getElementById('itemName').value = item.name;
+                        document.getElementById('itemCategory').value = item.category || '';
                         document.getElementById('itemDescription').value = item.description;
-                        document.getElementById('itemPrice').value = item.price;
+                        document.getElementById('itemPrice').value = item.basePrice || item.price;
+                        
+                        // Set markup values
+                        const markupType = item.markupType || 'none';
+                        document.querySelector(`input[name="markupType"][value="${markupType}"]`).checked = true;
+                        
+                        if (markupType === 'percent') {
+                            document.getElementById('markupPercentValue').value = item.markupValue || 0;
+                            document.getElementById('markupPercentValue').disabled = false;
+                            document.getElementById('markupFixedValue').disabled = true;
+                        } else if (markupType === 'fixed') {
+                            document.getElementById('markupFixedValue').value = item.markupValue || 0;
+                            document.getElementById('markupFixedValue').disabled = false;
+                            document.getElementById('markupPercentValue').disabled = true;
+                        } else {
+                            document.getElementById('markupPercentValue').disabled = true;
+                            document.getElementById('markupFixedValue').disabled = true;
+                        }
+                        
+                        updateItemPricePreview();
                         showModal('itemModal');
                     }
                 });
@@ -1838,9 +2142,88 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
         }
 
         function updateItemSelector() {
-            const select = document.getElementById('itemSelector');
-            select.innerHTML = '<option value="">Select an item to add...</option>' +
-                items.map(item => `<option value="${item.id}">${item.name} - $${item.price.toLocaleString()}</option>`).join('');
+            const container = document.getElementById('itemCategoriesContainer');
+            
+            // Group items by category
+            const categories = {};
+            items.forEach(item => {
+                const category = item.category || 'Uncategorized';
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(item);
+            });
+
+            // Generate categorized HTML
+            const categoriesHtml = Object.keys(categories).sort().map(categoryName => {
+                const categoryItems = categories[categoryName];
+                const categoryId = categoryName.replace(/\s+/g, '-').toLowerCase();
+                
+                return `
+                    <div class="category-group">
+                        <button type="button" class="category-toggle w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 border-b border-gray-200 flex items-center justify-between" data-category="${categoryId}">
+                            <span class="font-medium text-gray-800">${categoryName} (${categoryItems.length})</span>
+                            <svg class="w-4 h-4 text-gray-600 transform transition-transform category-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                        <div class="category-items hidden" data-category="${categoryId}">
+                            ${categoryItems.map(item => {
+                                const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                                return `
+                                <button type="button" class="item-select-btn w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-100 last:border-b-0" data-item-id="${item.id}">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-800">${item.name}</div>
+                                            <div class="text-sm text-gray-600">${item.description}</div>
+                                        </div>
+                                        <div class="text-sm font-bold text-green-600">$${finalPrice.toLocaleString()}</div>
+                                    </div>
+                                </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = categoriesHtml || '<div class="p-4 text-center text-gray-500 text-sm">No items available</div>';
+
+            // Add event listeners for category toggles
+            container.querySelectorAll('.category-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    const categoryId = e.currentTarget.dataset.category;
+                    const itemsContainer = container.querySelector(`[data-category="${categoryId}"].category-items`);
+                    const arrow = e.currentTarget.querySelector('.category-arrow');
+                    
+                    if (itemsContainer.classList.contains('hidden')) {
+                        itemsContainer.classList.remove('hidden');
+                        arrow.style.transform = 'rotate(90deg)';
+                    } else {
+                        itemsContainer.classList.add('hidden');
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
+
+            // Add event listeners for item selection
+            container.querySelectorAll('.item-select-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const itemId = parseInt(e.currentTarget.dataset.itemId);
+                    const item = items.find(i => i.id === itemId);
+                    
+                    if (item && !selectedQuoteItems.find(si => si.id === itemId)) {
+                        const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                        selectedQuoteItems.push({
+                            ...item,
+                            price: finalPrice, // Use final price with markup
+                            quantity: 1
+                        });
+                        updateSelectedItems();
+                        updateQuoteTotal();
+                    }
+                });
+            });
         }
 
         // Dashboard Functions
@@ -1941,12 +2324,15 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                             </div>
                             <span class="text-sm font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
                         </div>
-                        <div class="flex space-x-2">
-                            <button class="follow-up-btn flex-1 bg-blue-500 text-white py-1 px-3 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
-                                Mark Followed Up
+                        <div class="flex space-x-1">
+                            <button class="call-follow-up-btn flex-1 bg-green-500 text-white py-1 px-2 rounded text-xs hover:bg-green-600 transition-colors" data-quote-id="${quote.id}">
+                                📞 Call
                             </button>
-                            <button class="schedule-follow-up-btn flex-1 bg-gray-500 text-white py-1 px-3 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
-                                Schedule Follow-Up
+                            <button class="email-follow-up-btn flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
+                                📧 Email
+                            </button>
+                            <button class="schedule-follow-up-btn flex-1 bg-gray-500 text-white py-1 px-2 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
+                                📅 Later
                             </button>
                         </div>
                     </div>
@@ -1954,10 +2340,17 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             }).join('');
 
             // Add event listeners for follow-up buttons
-            container.querySelectorAll('.follow-up-btn').forEach(btn => {
+            container.querySelectorAll('.call-follow-up-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const quoteId = parseInt(e.target.dataset.quoteId);
-                    markQuoteFollowedUp(quoteId);
+                    callCustomer(quoteId);
+                });
+            });
+
+            container.querySelectorAll('.email-follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    emailCustomerFollowUp(quoteId);
                 });
             });
 
@@ -2093,11 +2486,14 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                                     <span class="text-sm font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
                                 </div>
                                 <div class="flex space-x-1">
-                                    <button class="follow-up-detailed-btn flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
-                                        Follow Up
+                                    <button class="call-detailed-btn flex-1 bg-green-500 text-white py-1 px-2 rounded text-xs hover:bg-green-600 transition-colors" data-quote-id="${quote.id}">
+                                        📞 Call
+                                    </button>
+                                    <button class="email-detailed-btn flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
+                                        📧 Email
                                     </button>
                                     <button class="schedule-detailed-btn flex-1 bg-gray-500 text-white py-1 px-2 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
-                                        Schedule
+                                        📅 Later
                                     </button>
                                 </div>
                             </div>
@@ -2108,10 +2504,18 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             `;
 
             // Add event listeners
-            container.querySelectorAll('.follow-up-detailed-btn').forEach(btn => {
+            container.querySelectorAll('.call-detailed-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const quoteId = parseInt(e.target.dataset.quoteId);
-                    markQuoteFollowedUp(quoteId);
+                    callCustomer(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.email-detailed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    emailCustomerFollowUp(quoteId);
                     renderAgingTab();
                 });
             });
@@ -2186,11 +2590,14 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                         </div>
                         ${needsFollowUp ? `
                             <div class="flex space-x-2 mt-3">
-                                <button class="aging-follow-up-btn flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm" data-quote-id="${quote.id}">
-                                    Follow Up Now
+                                <button class="aging-call-btn flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📞 Call Now
+                                </button>
+                                <button class="aging-email-btn flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📧 Email Now
                                 </button>
                                 <button class="aging-schedule-btn flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm" data-quote-id="${quote.id}">
-                                    Schedule Later
+                                    📅 Schedule Later
                                 </button>
                             </div>
                         ` : ''}
@@ -2199,10 +2606,18 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             }).join('');
 
             // Add event listeners
-            container.querySelectorAll('.aging-follow-up-btn').forEach(btn => {
+            container.querySelectorAll('.aging-call-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const quoteId = parseInt(e.target.dataset.quoteId);
-                    markQuoteFollowedUp(quoteId);
+                    callCustomer(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.aging-email-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    emailCustomerFollowUp(quoteId);
                     renderAgingTab();
                 });
             });
@@ -2487,22 +2902,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 document.body.classList.add('dark-theme');
             }
 
-            // Quote modal event listeners
-            document.getElementById('itemSelector').addEventListener('change', (e) => {
-                const itemId = parseInt(e.target.value);
-                if (itemId) {
-                    const item = items.find(i => i.id === itemId);
-                    if (item && !selectedQuoteItems.find(si => si.id === itemId)) {
-                        selectedQuoteItems.push({
-                            ...item,
-                            quantity: 1
-                        });
-                        updateSelectedItems();
-                        updateQuoteTotal();
-                        e.target.value = '';
-                    }
-                }
-            });
+            // Quote modal event listeners - item selection is now handled in updateItemSelector()
 
             document.getElementById('addCustomItem').addEventListener('click', () => {
                 const name = document.getElementById('customItemName').value.trim();
@@ -2621,6 +3021,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     <p class="font-medium mb-2">Required columns:</p>
                     <ul class="list-disc list-inside text-sm space-y-1">
                         <li><strong>name</strong> - Item name</li>
+                        <li><strong>category</strong> - Item category (optional)</li>
                         <li><strong>description</strong> - Item description</li>
                         <li><strong>price</strong> - Item price (number)</li>
                     </ul>
@@ -2641,10 +3042,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             document.getElementById('exportItemsBtn').addEventListener('click', () => {
                 const exportData = items.map(i => ({
                     name: i.name,
+                    category: i.category || 'Uncategorized',
                     description: i.description,
                     price: i.price
                 }));
-                exportToExcel(exportData, 'items.xlsx', ['name', 'description', 'price']);
+                exportToExcel(exportData, 'items.xlsx', ['name', 'category', 'description', 'price']);
             });
 
             document.getElementById('importFile').addEventListener('change', (e) => {
@@ -2685,6 +3087,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                                 items.push({
                                     id: Date.now() + Math.random(),
                                     name: row.name,
+                                    category: row.category || 'Uncategorized',
                                     description: row.description,
                                     price: parseFloat(row.price) || 0
                                 });
@@ -2760,33 +3163,89 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 editingItemId = null;
                 document.getElementById('itemModalTitle').textContent = 'Add Item';
                 document.getElementById('itemName').value = '';
+                document.getElementById('itemCategory').value = '';
                 document.getElementById('itemDescription').value = '';
                 document.getElementById('itemPrice').value = '';
+                document.getElementById('markupNone').checked = true;
+                document.getElementById('markupPercentValue').value = '';
+                document.getElementById('markupFixedValue').value = '';
+                document.getElementById('markupPercentValue').disabled = true;
+                document.getElementById('markupFixedValue').disabled = true;
+                document.getElementById('finalPricePreview').classList.add('hidden');
                 showModal('itemModal');
             });
 
+            // Markup radio button event listeners
+            document.querySelectorAll('input[name="markupType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const markupType = e.target.value;
+                    const percentInput = document.getElementById('markupPercentValue');
+                    const fixedInput = document.getElementById('markupFixedValue');
+                    
+                    if (markupType === 'percent') {
+                        percentInput.disabled = false;
+                        fixedInput.disabled = true;
+                        fixedInput.value = '';
+                    } else if (markupType === 'fixed') {
+                        fixedInput.disabled = false;
+                        percentInput.disabled = true;
+                        percentInput.value = '';
+                    } else {
+                        percentInput.disabled = true;
+                        fixedInput.disabled = true;
+                        percentInput.value = '';
+                        fixedInput.value = '';
+                    }
+                    updateItemPricePreview();
+                });
+            });
+
+            // Markup value input listeners
+            document.getElementById('itemPrice').addEventListener('input', updateItemPricePreview);
+            document.getElementById('markupPercentValue').addEventListener('input', updateItemPricePreview);
+            document.getElementById('markupFixedValue').addEventListener('input', updateItemPricePreview);
+
             document.getElementById('saveItem').addEventListener('click', () => {
                 const name = document.getElementById('itemName').value.trim();
+                const category = document.getElementById('itemCategory').value.trim();
                 const description = document.getElementById('itemDescription').value.trim();
-                const price = parseFloat(document.getElementById('itemPrice').value);
+                const basePrice = parseFloat(document.getElementById('itemPrice').value);
+                const markupType = document.querySelector('input[name="markupType"]:checked').value;
+                let markupValue = 0;
+                
+                if (markupType === 'percent') {
+                    markupValue = parseFloat(document.getElementById('markupPercentValue').value) || 0;
+                } else if (markupType === 'fixed') {
+                    markupValue = parseFloat(document.getElementById('markupFixedValue').value) || 0;
+                }
+                
+                const finalPrice = calculateFinalPrice(basePrice, markupType, markupValue);
 
-                if (name && description && price > 0) {
+                if (name && description && basePrice > 0) {
                     if (editingItemId) {
                         const itemIndex = items.findIndex(i => i.id === editingItemId);
                         if (itemIndex !== -1) {
                             items[itemIndex] = {
                                 id: editingItemId,
                                 name,
+                                category: category || 'Uncategorized',
                                 description,
-                                price
+                                basePrice,
+                                price: finalPrice,
+                                markupType,
+                                markupValue
                             };
                         }
                     } else {
                         const newItem = {
                             id: Date.now(),
                             name,
+                            category: category || 'Uncategorized',
                             description,
-                            price
+                            basePrice,
+                            price: finalPrice,
+                            markupType,
+                            markupValue
                         };
                         items.push(newItem);
                     }
@@ -2794,9 +3253,17 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     renderItems();
                     autoSave();
                     
+                    // Reset form
                     document.getElementById('itemName').value = '';
+                    document.getElementById('itemCategory').value = '';
                     document.getElementById('itemDescription').value = '';
                     document.getElementById('itemPrice').value = '';
+                    document.getElementById('markupNone').checked = true;
+                    document.getElementById('markupPercentValue').value = '';
+                    document.getElementById('markupFixedValue').value = '';
+                    document.getElementById('markupPercentValue').disabled = true;
+                    document.getElementById('markupFixedValue').disabled = true;
+                    document.getElementById('finalPricePreview').classList.add('hidden');
                     editingItemId = null;
                     
                     hideModal('itemModal');
@@ -2859,5 +3326,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ca3f565378744a',t:'MTc1NzQ1ODI1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ce70d9f1320efd',t:'MTc1NzUwMjIyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
