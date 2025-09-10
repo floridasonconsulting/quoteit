@@ -1622,15 +1622,61 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 }
                             }
                             
-                            // Generate filename
+                            // Generate filename - use provided filename or create default
                             const finalFilename = filename || `Quote_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
                             
                             console.log(`Saving PDF as: ${finalFilename}`);
                             
-                            // Save the PDF
-                            pdf.save(finalFilename);
+                            // Try multiple download methods for better compatibility
+                            try {
+                                // Method 1: Direct save (works in most browsers)
+                                pdf.save(finalFilename);
+                                console.log('PDF saved using direct method');
+                            } catch (saveError) {
+                                console.warn('Direct save failed, trying alternative method:', saveError);
+                                
+                                // Method 2: Create blob and download link
+                                try {
+                                    const pdfBlob = pdf.output('blob');
+                                    const url = URL.createObjectURL(pdfBlob);
+                                    
+                                    const downloadLink = document.createElement('a');
+                                    downloadLink.href = url;
+                                    downloadLink.download = finalFilename;
+                                    downloadLink.style.display = 'none';
+                                    
+                                    document.body.appendChild(downloadLink);
+                                    downloadLink.click();
+                                    document.body.removeChild(downloadLink);
+                                    
+                                    // Clean up the URL object
+                                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                                    
+                                    console.log('PDF saved using blob method');
+                                } catch (blobError) {
+                                    console.warn('Blob method failed, trying data URL method:', blobError);
+                                    
+                                    // Method 3: Data URL method
+                                    try {
+                                        const pdfDataUri = pdf.output('datauristring');
+                                        const downloadLink = document.createElement('a');
+                                        downloadLink.href = pdfDataUri;
+                                        downloadLink.download = finalFilename;
+                                        downloadLink.style.display = 'none';
+                                        
+                                        document.body.appendChild(downloadLink);
+                                        downloadLink.click();
+                                        document.body.removeChild(downloadLink);
+                                        
+                                        console.log('PDF saved using data URI method');
+                                    } catch (dataUriError) {
+                                        console.error('All download methods failed:', dataUriError);
+                                        throw new Error('Unable to download PDF. Browser may be blocking downloads.');
+                                    }
+                                }
+                            }
                             
-                            console.log('PDF saved successfully!');
+                            console.log('PDF download completed successfully!');
                             resolve({ pdf, filename: finalFilename });
                             
                         } catch (pdfError) {
@@ -1660,7 +1706,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
             const customer = quote.customerInfo;
             const total = quote.total;
             const quoteNumber = quote.id.toString().slice(-6);
-            const pdfFilename = `Quote_${quoteNumber}_${quote.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            
+            // Create filename with customer name, title, and date
+            const customerName = customer.name.replace(/[^a-zA-Z0-9]/g, '_');
+            const titleName = quote.title.replace(/[^a-zA-Z0-9]/g, '_');
+            const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+            const pdfFilename = `${customerName}_${titleName}_${dateStr}.pdf`;
             
             // First generate the quote preview if not already visible
             const customerId = quote.customerInfo.id;
@@ -3037,7 +3088,22 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 button.textContent = '⏳ Generating...';
                 button.disabled = true;
                 
-                generateAndDownloadPDF().then((result) => {
+                // Get current quote data for filename
+                const customerId = document.getElementById('quoteCustomer').value;
+                const title = document.getElementById('quoteTitle').value.trim();
+                let filename = null;
+                
+                if (customerId && title) {
+                    const customer = customers.find(c => c.id == customerId);
+                    if (customer) {
+                        const customerName = customer.name.replace(/[^a-zA-Z0-9]/g, '_');
+                        const titleName = title.replace(/[^a-zA-Z0-9]/g, '_');
+                        const dateStr = new Date().toISOString().slice(0, 10);
+                        filename = `${customerName}_${titleName}_${dateStr}.pdf`;
+                    }
+                }
+                
+                generateAndDownloadPDF(filename).then((result) => {
                     button.textContent = originalText;
                     button.disabled = false;
                     alert(`✅ PDF downloaded successfully as "${result.filename}"`);
@@ -3459,5 +3525,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d2497a46ac67c9',t:'MTc1NzU0MjU1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d25895564567c9',t:'MTc1NzU0MzE3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
