@@ -1479,141 +1479,146 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
 
         function generatePDFContent(element, filename, resolve, reject) {
             try {
-                console.log('Starting PRINT QUALITY PDF generation with enhanced logo support...');
+                console.log('Starting MOBILE-COMPATIBLE PDF generation...');
 
-                // Create a print-quality container for PDF generation
+                // Detect mobile device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const isSmallScreen = window.innerWidth <= 768;
+                
+                console.log('Device detection:', { isMobile, isSmallScreen, userAgent: navigator.userAgent });
+
+                // Create a mobile-optimized container for PDF generation
                 const tempContainer = document.createElement('div');
+                
+                // Mobile-optimized styling
+                const containerWidth = isMobile || isSmallScreen ? '800px' : '1200px';
+                const containerPadding = isMobile || isSmallScreen ? '40px' : '60px';
+                const baseFontSize = isMobile || isSmallScreen ? '14px' : '16px';
+                
                 tempContainer.style.cssText = `
-                    position: absolute;
+                    position: fixed;
                     left: -9999px;
                     top: 0;
-                    width: 1200px;
-                    background-color: #ffffff;
-                    padding: 60px;
-                    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #1f2937;
-                    line-height: 1.6;
-                    font-size: 16px;
-                    print-color-adjust: exact;
-                    -webkit-print-color-adjust: exact;
+                    width: ${containerWidth};
+                    background-color: #ffffff !important;
+                    padding: ${containerPadding};
+                    font-family: Arial, Helvetica, sans-serif;
+                    color: #000000 !important;
+                    line-height: 1.5;
+                    font-size: ${baseFontSize};
+                    z-index: -1000;
+                    overflow: hidden;
+                    box-sizing: border-box;
                 `;
                 
-                // Clone the content and optimize for print quality
+                // Clone the content and optimize for mobile PDF generation
                 const clonedContent = element.cloneNode(true);
                 
-                // Print quality styling optimization
+                // Mobile-optimized styling for all elements
                 const allElements = clonedContent.querySelectorAll('*');
                 allElements.forEach(el => {
-                    // Force high-quality rendering
-                    el.style.printColorAdjust = 'exact';
-                    el.style.webkitPrintColorAdjust = 'exact';
+                    // Force white background and black text for mobile compatibility
+                    el.style.backgroundColor = el.classList.contains('bg-blue-50') || el.classList.contains('bg-gray-50') || el.classList.contains('bg-gray-100') ? '#f8f9fa !important' : 
+                                             el.style.backgroundColor || 'transparent';
                     
-                    // Preserve professional colors with higher contrast for print
+                    // Ensure text is always black for mobile PDF viewers
                     if (el.classList.contains('text-blue-600') || el.classList.contains('text-blue-700')) {
-                        el.style.color = '#1d4ed8 !important';
+                        el.style.color = '#0066cc !important';
                     } else if (el.classList.contains('text-green-600') || el.classList.contains('text-green-700')) {
-                        el.style.color = '#047857 !important';
-                    } else if (el.classList.contains('text-gray-900')) {
+                        el.style.color = '#006600 !important';
+                    } else if (el.classList.contains('text-gray-900') || el.classList.contains('text-gray-800')) {
                         el.style.color = '#000000 !important';
-                    } else if (el.classList.contains('text-gray-800')) {
-                        el.style.color = '#1f2937 !important';
                     } else if (el.classList.contains('text-gray-600')) {
-                        el.style.color = '#374151 !important';
+                        el.style.color = '#333333 !important';
                     } else if (el.classList.contains('text-gray-500')) {
-                        el.style.color = '#6b7280 !important';
+                        el.style.color = '#666666 !important';
+                    } else {
+                        el.style.color = '#000000 !important';
                     }
                     
-                    // Preserve background colors with print optimization
-                    if (el.classList.contains('bg-gray-50')) {
-                        el.style.backgroundColor = '#f9fafb !important';
-                    } else if (el.classList.contains('bg-blue-50')) {
-                        el.style.backgroundColor = '#eff6ff !important';
-                    } else if (el.classList.contains('bg-gray-100')) {
-                        el.style.backgroundColor = '#f3f4f6 !important';
-                    }
-                    
-                    // Enhanced table styling for print
+                    // Mobile-optimized table styling
                     if (el.tagName === 'TABLE') {
-                        el.style.border = '2px solid #374151 !important';
-                        el.style.borderCollapse = 'collapse';
-                        el.style.width = '100%';
+                        el.style.border = '2px solid #000000 !important';
+                        el.style.borderCollapse = 'collapse !important';
+                        el.style.width = '100% !important';
+                        el.style.backgroundColor = '#ffffff !important';
                     } else if (el.tagName === 'TD' || el.tagName === 'TH') {
-                        el.style.border = '1px solid #6b7280 !important';
-                        el.style.padding = '12px 16px !important';
-                        el.style.fontSize = '14px !important';
-                    } else if (el.tagName === 'TH') {
-                        el.style.backgroundColor = '#e5e7eb !important';
-                        el.style.fontWeight = '700 !important';
-                        el.style.color = '#111827 !important';
+                        el.style.border = '1px solid #333333 !important';
+                        el.style.padding = '8px 12px !important';
+                        el.style.fontSize = '12px !important';
+                        el.style.color = '#000000 !important';
+                        el.style.backgroundColor = el.tagName === 'TH' ? '#f0f0f0 !important' : '#ffffff !important';
                     }
                     
-                    // Enhanced font sizes for print quality
-                    const fontSize = window.getComputedStyle(el).fontSize;
-                    if (fontSize && fontSize !== 'inherit') {
-                        const size = parseFloat(fontSize);
-                        if (size < 14) {
-                            el.style.fontSize = '14px !important';
-                        } else if (size > 36) {
-                            el.style.fontSize = '36px !important';
+                    // Mobile-friendly font sizes
+                    const currentFontSize = window.getComputedStyle(el).fontSize;
+                    if (currentFontSize && currentFontSize !== 'inherit') {
+                        const size = parseFloat(currentFontSize);
+                        if (size < 12) {
+                            el.style.fontSize = '12px !important';
+                        } else if (size > 32) {
+                            el.style.fontSize = '32px !important';
                         } else {
-                            el.style.fontSize = Math.ceil(size * 1.1) + 'px !important'; // Slightly increase all font sizes
+                            el.style.fontSize = Math.max(12, Math.ceil(size)) + 'px !important';
                         }
                     }
                     
-                    // ENHANCED LOGO HANDLING - Preserve all images including logos
+                    // MOBILE-OPTIMIZED IMAGE HANDLING
                     if (el.tagName === 'IMG') {
-                        // Ensure images are properly sized and high quality
-                        el.style.maxWidth = '200px !important';
-                        el.style.maxHeight = '120px !important';
+                        el.style.maxWidth = '150px !important';
+                        el.style.maxHeight = '100px !important';
                         el.style.objectFit = 'contain !important';
-                        el.style.imageRendering = 'high-quality !important';
-                        el.style.imageRendering = '-webkit-optimize-contrast !important';
-                        el.style.msInterpolationMode = 'bicubic !important';
+                        el.style.display = 'block !important';
+                        el.style.visibility = 'visible !important';
+                        el.style.opacity = '1 !important';
                         
-                        // Ensure the image loads properly
+                        // Ensure image loads properly on mobile
                         if (el.src && el.src.startsWith('data:')) {
-                            // Data URL images (like uploaded logos) should be preserved
-                            console.log('Preserving data URL image for print quality');
+                            console.log('Mobile: Preserving data URL image');
                         } else if (el.src && el.src.startsWith('http')) {
-                            // External images - ensure they load
                             el.crossOrigin = 'anonymous';
                         }
                     }
                     
-                    // PRESERVE SVG LOGOS - Don't convert to text
+                    // MOBILE-OPTIMIZED SVG HANDLING
                     if (el.tagName === 'SVG') {
-                        // Keep SVGs but optimize for print
-                        el.style.maxWidth = '200px !important';
-                        el.style.maxHeight = '120px !important';
-                        el.style.shapeRendering = 'geometricPrecision !important';
-                        el.style.textRendering = 'geometricPrecision !important';
+                        el.style.maxWidth = '150px !important';
+                        el.style.maxHeight = '100px !important';
+                        el.style.display = 'block !important';
+                        el.style.visibility = 'visible !important';
                     }
                     
-                    // Remove problematic styling that can cause rendering issues
-                    el.style.boxShadow = 'none';
-                    el.style.textShadow = 'none';
-                    el.style.filter = 'none';
-                    el.style.transform = 'none';
-                    el.style.animation = 'none';
-                    el.style.transition = 'none';
+                    // Remove all problematic styles for mobile
+                    el.style.boxShadow = 'none !important';
+                    el.style.textShadow = 'none !important';
+                    el.style.filter = 'none !important';
+                    el.style.transform = 'none !important';
+                    el.style.animation = 'none !important';
+                    el.style.transition = 'none !important';
+                    el.style.borderRadius = el.style.borderRadius ? Math.min(8, parseFloat(el.style.borderRadius) || 0) + 'px !important' : '';
                     
-                    // Ensure proper font rendering
-                    el.style.fontSmooth = 'always';
-                    el.style.webkitFontSmoothing = 'antialiased';
-                    el.style.mozOsxFontSmoothing = 'grayscale';
+                    // Ensure proper rendering on mobile
+                    el.style.webkitFontSmoothing = 'antialiased !important';
+                    el.style.mozOsxFontSmoothing = 'grayscale !important';
+                    el.style.textRendering = 'optimizeLegibility !important';
                 });
                 
                 tempContainer.appendChild(clonedContent);
                 document.body.appendChild(tempContainer);
 
-                console.log('Print-quality container created with enhanced logo preservation...');
+                console.log('Mobile-optimized container created...');
 
-                // Extended time for image loading and rendering
+                // Mobile-optimized rendering timeout
+                const renderTimeout = isMobile ? 3500 : 2500;
+                
                 setTimeout(() => {
-                    console.log('Starting html2canvas capture with PRINT QUALITY settings...');
+                    console.log('Starting mobile-compatible html2canvas capture...');
+                    
+                    // Mobile-optimized html2canvas options
+                    const scale = isMobile || isSmallScreen ? 2 : 3; // Lower scale for mobile to prevent memory issues
                     
                     const options = {
-                        scale: 3, // MUCH higher scale for print quality (300 DPI equivalent)
+                        scale: scale,
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: '#ffffff',
@@ -1623,45 +1628,60 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                         scrollY: 0,
                         logging: false,
                         removeContainer: false,
-                        imageTimeout: 10000, // Longer timeout for image loading
+                        imageTimeout: 8000,
                         letterRendering: true,
-                        foreignObjectRendering: true, // Better SVG rendering
+                        foreignObjectRendering: false, // Disable for mobile compatibility
                         onclone: function(clonedDoc) {
-                            // Ensure fonts and images are properly loaded in cloned document
+                            console.log('Mobile: Processing cloned document...');
+                            
+                            // Ensure all elements are visible and properly styled in clone
                             const clonedElements = clonedDoc.querySelectorAll('*');
                             clonedElements.forEach(el => {
-                                el.style.fontFamily = '"Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                                el.style.fontFamily = 'Arial, Helvetica, sans-serif !important';
+                                el.style.visibility = 'visible !important';
+                                el.style.opacity = '1 !important';
+                                el.style.display = el.style.display === 'none' ? 'block' : el.style.display;
                                 
-                                // Ensure images are visible in clone
+                                // Ensure images are visible in mobile clone
                                 if (el.tagName === 'IMG') {
-                                    el.style.display = 'block';
-                                    el.style.visibility = 'visible';
-                                    el.style.opacity = '1';
+                                    el.style.display = 'block !important';
+                                    el.style.visibility = 'visible !important';
+                                    el.style.opacity = '1 !important';
+                                    el.style.maxWidth = '150px !important';
+                                    el.style.maxHeight = '100px !important';
+                                }
+                                
+                                // Ensure SVGs are visible in mobile clone
+                                if (el.tagName === 'SVG') {
+                                    el.style.display = 'block !important';
+                                    el.style.visibility = 'visible !important';
+                                    el.style.maxWidth = '150px !important';
+                                    el.style.maxHeight = '100px !important';
                                 }
                             });
                             
-                            // Wait for images to load in cloned document
+                            // Mobile-optimized image loading
                             const images = clonedDoc.querySelectorAll('img');
                             const imagePromises = Array.from(images).map(img => {
                                 return new Promise((resolve) => {
-                                    if (img.complete) {
+                                    if (img.complete && img.naturalWidth > 0) {
                                         resolve();
                                     } else {
-                                        img.onload = resolve;
-                                        img.onerror = resolve; // Continue even if image fails
-                                        setTimeout(resolve, 3000); // Timeout after 3 seconds
+                                        img.onload = () => resolve();
+                                        img.onerror = () => resolve(); // Continue even if image fails
+                                        setTimeout(() => resolve(), 2000); // Shorter timeout for mobile
                                     }
                                 });
                             });
                             
                             Promise.all(imagePromises).then(() => {
-                                console.log('All images loaded in cloned document');
+                                console.log('Mobile: All images processed in cloned document');
                             });
                         }
                     };
 
                     html2canvas(tempContainer, options).then(canvas => {
-                        console.log('PRINT QUALITY canvas created, optimizing for 3MB limit...');
+                        console.log('Mobile: Canvas created successfully');
                         
                         try {
                             // Clean up temporary container
@@ -1669,41 +1689,44 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 document.body.removeChild(tempContainer);
                             }
 
-                            // Start with very high quality for print
-                            let quality = 0.95; // Start at 95% quality for print
+                            // Mobile-optimized quality settings
+                            let quality = isMobile ? 0.85 : 0.95; // Lower initial quality for mobile
                             let imgData = canvas.toDataURL('image/jpeg', quality);
                             
-                            // Verify image data
-                            if (!imgData || imgData === 'data:,') {
-                                throw new Error('Failed to generate image from content');
+                            // Verify image data is valid
+                            if (!imgData || imgData === 'data:,' || imgData.length < 1000) {
+                                throw new Error('Failed to generate valid image data from content');
                             }
+
+                            console.log('Mobile: Image data generated, size:', imgData.length);
 
                             const { jsPDF } = window.jspdf;
                             
-                            // Function to estimate PDF size more accurately
+                            // Mobile-optimized size estimation
                             function estimatePDFSize(imageDataUrl) {
                                 const base64Size = imageDataUrl.length * 0.75;
-                                return base64Size + 150000; // Add 150KB for PDF structure overhead
+                                return base64Size + 100000; // Smaller overhead for mobile
                             }
                             
-                            // Optimize quality to stay under 3MB while maintaining print quality
-                            const maxSize = 3 * 1024 * 1024; // 3MB in bytes
+                            // Mobile-friendly size optimization
+                            const maxSize = 3 * 1024 * 1024; // 3MB limit
                             let estimatedSize = estimatePDFSize(imgData);
                             
-                            console.log(`Initial print quality size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                            console.log(`Mobile: Initial size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
                             
-                            // Gradually reduce quality if needed, but maintain high quality for print
-                            while (estimatedSize > maxSize && quality > 0.75) {
-                                quality -= 0.02; // Smaller decrements to maintain quality
+                            // More aggressive quality reduction for mobile if needed
+                            const minQuality = isMobile ? 0.6 : 0.75;
+                            while (estimatedSize > maxSize && quality > minQuality) {
+                                quality -= 0.05; // Larger decrements for mobile
                                 imgData = canvas.toDataURL('image/jpeg', quality);
                                 estimatedSize = estimatePDFSize(imgData);
-                                console.log(`Adjusted to ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                                console.log(`Mobile: Adjusted to ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
                             }
                             
-                            // If still too large, resize canvas while maintaining print quality
+                            // Mobile-optimized canvas resizing if still too large
                             if (estimatedSize > maxSize) {
-                                console.log('Resizing canvas to fit 3MB limit while maintaining print quality...');
-                                const scaleFactor = Math.sqrt(maxSize / estimatedSize) * 0.95; // 95% of calculated
+                                console.log('Mobile: Resizing canvas to fit size limit...');
+                                const scaleFactor = Math.sqrt(maxSize / estimatedSize) * 0.9;
                                 const newWidth = Math.floor(canvas.width * scaleFactor);
                                 const newHeight = Math.floor(canvas.height * scaleFactor);
                                 
@@ -1712,35 +1735,36 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 resizedCanvas.height = newHeight;
                                 const ctx = resizedCanvas.getContext('2d');
                                 
-                                // Use highest quality scaling
+                                // Mobile-optimized scaling
                                 ctx.imageSmoothingEnabled = true;
                                 ctx.imageSmoothingQuality = 'high';
                                 ctx.fillStyle = '#ffffff';
                                 ctx.fillRect(0, 0, newWidth, newHeight);
                                 ctx.drawImage(canvas, 0, 0, newWidth, newHeight);
                                 
-                                imgData = resizedCanvas.toDataURL('image/jpeg', Math.max(quality, 0.8)); // Maintain high quality
+                                imgData = resizedCanvas.toDataURL('image/jpeg', Math.max(quality, 0.7));
                                 estimatedSize = estimatePDFSize(imgData);
-                                console.log(`Resized to ${newWidth}x${newHeight}, estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`);
+                                console.log(`Mobile: Resized to ${newWidth}x${newHeight}, size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`);
                             }
 
+                            // Mobile-optimized PDF creation
                             const pdf = new jsPDF({
                                 orientation: 'portrait',
                                 unit: 'mm',
                                 format: 'a4',
-                                compress: false, // Disable compression for print quality
-                                precision: 32 // Maximum precision for print quality
+                                compress: true, // Enable compression for mobile
+                                precision: 16 // Lower precision for mobile compatibility
                             });
                             
                             const pdfWidth = pdf.internal.pageSize.getWidth();
                             const pdfHeight = pdf.internal.pageSize.getHeight();
                             
-                            // Professional margins for print
-                            const margin = 12;
+                            // Mobile-friendly margins
+                            const margin = isMobile ? 10 : 12;
                             const availableWidth = pdfWidth - (margin * 2);
                             const availableHeight = pdfHeight - (margin * 2);
                             
-                            // Calculate dimensions to fit page with print quality
+                            // Calculate dimensions for mobile display
                             const aspectRatio = canvas.height / canvas.width;
                             let finalWidth = availableWidth;
                             let finalHeight = finalWidth * aspectRatio;
@@ -1754,32 +1778,45 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                             const imgX = (pdfWidth - finalWidth) / 2;
                             const imgY = margin;
 
-                            console.log(`Adding PRINT QUALITY image to PDF: ${finalWidth}x${finalHeight}mm`);
+                            console.log(`Mobile: Adding image to PDF: ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
 
-                            // Add image with highest quality settings for print
-                            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
+                            // Add image with mobile-optimized settings
+                            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'MEDIUM');
                             
-                            // Check actual PDF size
+                            // Check final PDF size
                             const pdfBlob = pdf.output('blob');
                             const actualSize = pdfBlob.size;
-                            console.log(`Final PRINT QUALITY PDF size: ${(actualSize / 1024 / 1024).toFixed(2)}MB`);
+                            console.log(`Mobile: Final PDF size: ${(actualSize / 1024 / 1024).toFixed(2)}MB`);
                             
-                            if (actualSize > maxSize) {
-                                console.warn(`PDF size (${(actualSize / 1024 / 1024).toFixed(2)}MB) exceeds 3MB limit, but proceeding with print quality download`);
-                            }
+                            // Generate mobile-friendly filename
+                            const finalFilename = filename || `Quote_Mobile_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
                             
-                            // Generate filename
-                            const finalFilename = filename || `Quote_PrintQuality_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
+                            console.log(`Mobile: Saving PDF as: ${finalFilename}`);
                             
-                            console.log(`Saving PRINT QUALITY PDF as: ${finalFilename}`);
-                            
-                            // Save the PDF
+                            // Mobile-optimized save method
                             try {
-                                pdf.save(finalFilename);
-                                console.log('PRINT QUALITY PDF saved successfully');
+                                if (isMobile) {
+                                    // Use blob method for mobile devices
+                                    const url = URL.createObjectURL(pdfBlob);
+                                    const downloadLink = document.createElement('a');
+                                    downloadLink.href = url;
+                                    downloadLink.download = finalFilename;
+                                    downloadLink.style.display = 'none';
+                                    
+                                    document.body.appendChild(downloadLink);
+                                    downloadLink.click();
+                                    document.body.removeChild(downloadLink);
+                                    
+                                    setTimeout(() => URL.revokeObjectURL(url), 2000);
+                                    console.log('Mobile: PDF saved using blob method');
+                                } else {
+                                    pdf.save(finalFilename);
+                                    console.log('Desktop: PDF saved using direct method');
+                                }
                             } catch (saveError) {
-                                console.warn('Direct save failed, trying blob method:', saveError);
+                                console.warn('Save method failed, trying alternative:', saveError);
                                 
+                                // Fallback method
                                 const url = URL.createObjectURL(pdfBlob);
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = url;
@@ -1790,35 +1827,36 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 downloadLink.click();
                                 document.body.removeChild(downloadLink);
                                 
-                                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                                console.log('PRINT QUALITY PDF saved using blob method');
+                                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                                console.log('Fallback: PDF saved using blob method');
                             }
                             
                             resolve({ 
                                 pdf, 
                                 filename: finalFilename, 
                                 size: actualSize,
-                                sizeFormatted: `${(actualSize / 1024 / 1024).toFixed(2)}MB`
+                                sizeFormatted: `${(actualSize / 1024 / 1024).toFixed(2)}MB`,
+                                isMobile: isMobile
                             });
                             
                         } catch (pdfError) {
-                            console.error('PDF generation error:', pdfError);
+                            console.error('Mobile PDF generation error:', pdfError);
                             if (document.body.contains(tempContainer)) {
                                 document.body.removeChild(tempContainer);
                             }
-                            reject(new Error(`PDF creation failed: ${pdfError.message}`));
+                            reject(new Error(`Mobile PDF creation failed: ${pdfError.message}`));
                         }
                     }).catch(canvasError => {
-                        console.error('Canvas generation error:', canvasError);
+                        console.error('Mobile canvas generation error:', canvasError);
                         if (document.body.contains(tempContainer)) {
                             document.body.removeChild(tempContainer);
                         }
-                        reject(new Error(`Image capture failed: ${canvasError.message}. Try refreshing the page.`));
+                        reject(new Error(`Mobile image capture failed: ${canvasError.message}. This may be due to device limitations.`));
                     });
-                }, 2500); // Extended time for proper image loading and rendering
+                }, renderTimeout);
             } catch (error) {
-                console.error('PDF generation setup error:', error);
-                reject(new Error(`PDF generation failed: ${error.message}`));
+                console.error('Mobile PDF setup error:', error);
+                reject(new Error(`Mobile PDF generation failed: ${error.message}`));
             }
         }
 
@@ -3645,5 +3683,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d92927f602a6ac',t:'MTc1NzYxNDYzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d93419651fa6ac',t:'MTc1NzYxNTA4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
