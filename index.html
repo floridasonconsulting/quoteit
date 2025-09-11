@@ -1481,30 +1481,44 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
             try {
                 console.log('Starting PDF generation...');
 
-                // Create a clean container for PDF generation
+                // Create a clean container for PDF generation - smaller size for compression
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
                     position: absolute;
                     left: -9999px;
                     top: 0;
-                    width: 800px;
+                    width: 600px;
                     background-color: #ffffff;
-                    padding: 40px;
+                    padding: 30px;
                     font-family: Arial, sans-serif;
                     color: #000000;
-                    line-height: 1.4;
+                    line-height: 1.3;
+                    font-size: 14px;
                 `;
                 
                 // Clone the content and ensure all text is black
                 const clonedContent = element.cloneNode(true);
                 
-                // Force all text to be black for PDF
+                // Force all text to be black for PDF and optimize for smaller size
                 const allElements = clonedContent.querySelectorAll('*');
                 allElements.forEach(el => {
                     el.style.color = '#000000';
+                    // Remove gradients and complex backgrounds to reduce file size
+                    if (el.style.background && el.style.background.includes('gradient')) {
+                        el.style.background = '#f8f9fa';
+                    }
                     if (el.style.backgroundColor && el.style.backgroundColor !== 'white' && el.style.backgroundColor !== '#ffffff') {
-                        // Keep background colors but ensure text contrast
+                        // Simplify background colors
+                        el.style.backgroundColor = '#f8f9fa';
                         el.style.color = '#000000';
+                    }
+                    // Reduce font sizes slightly for compression
+                    const fontSize = window.getComputedStyle(el).fontSize;
+                    if (fontSize && fontSize !== 'inherit') {
+                        const size = parseFloat(fontSize);
+                        if (size > 12) {
+                            el.style.fontSize = Math.max(12, size * 0.9) + 'px';
+                        }
                     }
                 });
                 
@@ -1518,7 +1532,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                     console.log('Starting html2canvas capture...');
                     
                     const options = {
-                        scale: 2, // Higher scale for better quality
+                        scale: 1.2, // Reduced scale for smaller file size
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: '#ffffff',
@@ -1526,8 +1540,20 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                         height: tempContainer.scrollHeight,
                         scrollX: 0,
                         scrollY: 0,
-                        logging: true, // Enable logging for debugging
-                        removeContainer: false // Don't auto-remove
+                        logging: false, // Disable logging for performance
+                        removeContainer: false,
+                        // Additional compression options
+                        imageTimeout: 5000,
+                        onclone: function(clonedDoc) {
+                            // Further optimize cloned document
+                            const clonedElements = clonedDoc.querySelectorAll('*');
+                            clonedElements.forEach(el => {
+                                // Remove box shadows and complex styling
+                                el.style.boxShadow = 'none';
+                                el.style.textShadow = 'none';
+                                el.style.filter = 'none';
+                            });
+                        }
                     };
 
                     html2canvas(tempContainer, options).then(canvas => {
@@ -1539,7 +1565,8 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 document.body.removeChild(tempContainer);
                             }
 
-                            const imgData = canvas.toDataURL('image/png', 1.0);
+                            // Use JPEG compression for smaller file size
+                            const imgData = canvas.toDataURL('image/jpeg', 0.7); // 70% quality for compression
                             
                             // Verify image data
                             if (!imgData || imgData === 'data:,') {
@@ -1550,7 +1577,8 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                             const pdf = new jsPDF({
                                 orientation: 'portrait',
                                 unit: 'mm',
-                                format: 'a4'
+                                format: 'a4',
+                                compress: true // Enable PDF compression
                             });
                             
                             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -1587,11 +1615,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
 
                             // Check if content fits on one page
                             if (finalHeight <= availableHeight) {
-                                // Single page
-                                pdf.addImage(imgData, 'PNG', imgX, imgY, finalWidth, finalHeight);
+                                // Single page with JPEG compression
+                                pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'MEDIUM');
                                 console.log('Added single page to PDF');
                             } else {
-                                // Multi-page handling
+                                // Multi-page handling with compression
                                 console.log('Content requires multiple pages');
                                 const pageHeight = availableHeight;
                                 const totalPages = Math.ceil(finalHeight / pageHeight);
@@ -1615,10 +1643,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                     pageCtx.fillRect(0, 0, canvasWidth, sourceHeight);
                                     pageCtx.drawImage(canvas, 0, sourceY, canvasWidth, sourceHeight, 0, 0, canvasWidth, sourceHeight);
                                     
-                                    const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+                                    // Use JPEG compression for page sections too
+                                    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.7);
                                     const pageHeightMm = sourceHeight * pxToMm * scale;
                                     
-                                    pdf.addImage(pageImgData, 'PNG', imgX, imgY, finalWidth, pageHeightMm);
+                                    pdf.addImage(pageImgData, 'JPEG', imgX, imgY, finalWidth, pageHeightMm, undefined, 'MEDIUM');
                                 }
                             }
                             
@@ -3525,5 +3554,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d25895564567c9',t:'MTc1NzU0MzE3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d810f116e8a6ac',t:'MTc1NzYwMzE1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
