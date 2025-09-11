@@ -1479,60 +1479,76 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
 
         function generatePDFContent(element, filename, resolve, reject) {
             try {
-                console.log('Starting PDF generation...');
+                console.log('Starting PDF generation with 2MB size limit...');
 
-                // Create a clean container for PDF generation - smaller size for compression
+                // Create a clean container for PDF generation - optimized for minimal size
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
                     position: absolute;
                     left: -9999px;
                     top: 0;
-                    width: 600px;
+                    width: 500px;
                     background-color: #ffffff;
-                    padding: 30px;
+                    padding: 20px;
                     font-family: Arial, sans-serif;
                     color: #000000;
-                    line-height: 1.3;
-                    font-size: 14px;
+                    line-height: 1.2;
+                    font-size: 12px;
                 `;
                 
-                // Clone the content and ensure all text is black
+                // Clone the content and aggressively optimize for size
                 const clonedContent = element.cloneNode(true);
                 
-                // Force all text to be black for PDF and optimize for smaller size
+                // Aggressive optimization for minimal file size
                 const allElements = clonedContent.querySelectorAll('*');
                 allElements.forEach(el => {
+                    // Force black text and remove all styling that increases size
                     el.style.color = '#000000';
-                    // Remove gradients and complex backgrounds to reduce file size
-                    if (el.style.background && el.style.background.includes('gradient')) {
-                        el.style.background = '#f8f9fa';
-                    }
-                    if (el.style.backgroundColor && el.style.backgroundColor !== 'white' && el.style.backgroundColor !== '#ffffff') {
-                        // Simplify background colors
-                        el.style.backgroundColor = '#f8f9fa';
-                        el.style.color = '#000000';
-                    }
-                    // Reduce font sizes slightly for compression
+                    el.style.background = 'transparent';
+                    el.style.backgroundColor = 'transparent';
+                    el.style.boxShadow = 'none';
+                    el.style.textShadow = 'none';
+                    el.style.filter = 'none';
+                    el.style.borderRadius = '0';
+                    el.style.border = el.tagName === 'TABLE' || el.tagName === 'TD' || el.tagName === 'TH' ? '1px solid #000' : 'none';
+                    
+                    // Minimize font sizes for compression
                     const fontSize = window.getComputedStyle(el).fontSize;
                     if (fontSize && fontSize !== 'inherit') {
                         const size = parseFloat(fontSize);
-                        if (size > 12) {
-                            el.style.fontSize = Math.max(12, size * 0.9) + 'px';
+                        if (size > 10) {
+                            el.style.fontSize = Math.max(10, size * 0.8) + 'px';
                         }
+                    }
+                    
+                    // Remove images and replace with text placeholders to save space
+                    if (el.tagName === 'IMG') {
+                        const textNode = document.createElement('div');
+                        textNode.textContent = '[LOGO]';
+                        textNode.style.cssText = 'font-weight: bold; text-align: center; padding: 10px; border: 1px solid #000;';
+                        el.parentNode.replaceChild(textNode, el);
+                    }
+                    
+                    // Simplify SVGs to text
+                    if (el.tagName === 'SVG') {
+                        const textNode = document.createElement('span');
+                        textNode.textContent = '[LOGO]';
+                        textNode.style.cssText = 'font-weight: bold;';
+                        el.parentNode.replaceChild(textNode, el);
                     }
                 });
                 
                 tempContainer.appendChild(clonedContent);
                 document.body.appendChild(tempContainer);
 
-                console.log('Temporary container created, waiting for render...');
+                console.log('Temporary container created with size optimizations...');
 
-                // Wait for content to render properly
+                // Shorter wait time for faster processing
                 setTimeout(() => {
-                    console.log('Starting html2canvas capture...');
+                    console.log('Starting html2canvas capture with minimal settings...');
                     
                     const options = {
-                        scale: 1.2, // Reduced scale for smaller file size
+                        scale: 0.8, // Much smaller scale for tiny file size
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: '#ffffff',
@@ -1540,24 +1556,24 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                         height: tempContainer.scrollHeight,
                         scrollX: 0,
                         scrollY: 0,
-                        logging: false, // Disable logging for performance
+                        logging: false,
                         removeContainer: false,
-                        // Additional compression options
-                        imageTimeout: 5000,
+                        imageTimeout: 3000,
                         onclone: function(clonedDoc) {
-                            // Further optimize cloned document
+                            // Remove all unnecessary elements
                             const clonedElements = clonedDoc.querySelectorAll('*');
                             clonedElements.forEach(el => {
-                                // Remove box shadows and complex styling
                                 el.style.boxShadow = 'none';
                                 el.style.textShadow = 'none';
                                 el.style.filter = 'none';
+                                el.style.background = 'transparent';
+                                el.style.backgroundImage = 'none';
                             });
                         }
                     };
 
                     html2canvas(tempContainer, options).then(canvas => {
-                        console.log('Canvas created successfully, generating PDF...');
+                        console.log('Canvas created, optimizing for 2MB limit...');
                         
                         try {
                             // Clean up temporary container
@@ -1565,8 +1581,9 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 document.body.removeChild(tempContainer);
                             }
 
-                            // Use JPEG compression for smaller file size
-                            const imgData = canvas.toDataURL('image/jpeg', 0.7); // 70% quality for compression
+                            // Start with very low quality and increase if size allows
+                            let quality = 0.3; // Start at 30% quality
+                            let imgData = canvas.toDataURL('image/jpeg', quality);
                             
                             // Verify image data
                             if (!imgData || imgData === 'data:,') {
@@ -1574,143 +1591,128 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                             }
 
                             const { jsPDF } = window.jspdf;
+                            
+                            // Function to estimate PDF size
+                            function estimatePDFSize(imageDataUrl) {
+                                // Rough estimation: base64 data size + PDF overhead
+                                const base64Size = imageDataUrl.length * 0.75; // base64 is ~33% larger than binary
+                                return base64Size + 50000; // Add 50KB for PDF structure overhead
+                            }
+                            
+                            // Optimize quality to stay under 2MB
+                            const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                            let estimatedSize = estimatePDFSize(imgData);
+                            
+                            console.log(`Initial estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                            
+                            // If too large, reduce quality further
+                            while (estimatedSize > maxSize && quality > 0.1) {
+                                quality -= 0.05;
+                                imgData = canvas.toDataURL('image/jpeg', quality);
+                                estimatedSize = estimatePDFSize(imgData);
+                                console.log(`Reduced to ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                            }
+                            
+                            // If still too large, resize canvas
+                            if (estimatedSize > maxSize) {
+                                console.log('Resizing canvas for smaller file size...');
+                                const scaleFactor = Math.sqrt(maxSize / estimatedSize) * 0.8; // Extra margin
+                                const newWidth = Math.floor(canvas.width * scaleFactor);
+                                const newHeight = Math.floor(canvas.height * scaleFactor);
+                                
+                                const resizedCanvas = document.createElement('canvas');
+                                resizedCanvas.width = newWidth;
+                                resizedCanvas.height = newHeight;
+                                const ctx = resizedCanvas.getContext('2d');
+                                
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, newWidth, newHeight);
+                                ctx.drawImage(canvas, 0, 0, newWidth, newHeight);
+                                
+                                imgData = resizedCanvas.toDataURL('image/jpeg', 0.5);
+                                estimatedSize = estimatePDFSize(imgData);
+                                console.log(`Resized to ${newWidth}x${newHeight}, estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`);
+                            }
+
                             const pdf = new jsPDF({
                                 orientation: 'portrait',
                                 unit: 'mm',
                                 format: 'a4',
-                                compress: true // Enable PDF compression
+                                compress: true,
+                                precision: 2 // Reduce precision for smaller size
                             });
                             
                             const pdfWidth = pdf.internal.pageSize.getWidth();
                             const pdfHeight = pdf.internal.pageSize.getHeight();
-                            const canvasWidth = canvas.width;
-                            const canvasHeight = canvas.height;
                             
-                            console.log(`PDF dimensions: ${pdfWidth}x${pdfHeight}mm`);
-                            console.log(`Canvas dimensions: ${canvasWidth}x${canvasHeight}px`);
-                            
-                            // Calculate dimensions to fit page with margins
-                            const margin = 10;
+                            // Use smaller margins for more content
+                            const margin = 5;
                             const availableWidth = pdfWidth - (margin * 2);
                             const availableHeight = pdfHeight - (margin * 2);
                             
-                            // Convert pixels to mm (96 DPI standard)
-                            const pxToMm = 0.264583;
-                            const contentWidthMm = canvasWidth * pxToMm;
-                            const contentHeightMm = canvasHeight * pxToMm;
+                            // Calculate dimensions to fit page
+                            const aspectRatio = canvas.height / canvas.width;
+                            let finalWidth = availableWidth;
+                            let finalHeight = finalWidth * aspectRatio;
                             
-                            // Calculate scaling to fit within available space
-                            const scaleX = availableWidth / contentWidthMm;
-                            const scaleY = availableHeight / contentHeightMm;
-                            const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
-                            
-                            const finalWidth = contentWidthMm * scale;
-                            const finalHeight = contentHeightMm * scale;
+                            if (finalHeight > availableHeight) {
+                                finalHeight = availableHeight;
+                                finalWidth = finalHeight / aspectRatio;
+                            }
                             
                             // Center the content
                             const imgX = (pdfWidth - finalWidth) / 2;
                             const imgY = margin;
 
-                            console.log(`Final image dimensions: ${finalWidth}x${finalHeight}mm at position ${imgX},${imgY}`);
+                            console.log(`Adding image to PDF: ${finalWidth}x${finalHeight}mm`);
 
-                            // Check if content fits on one page
-                            if (finalHeight <= availableHeight) {
-                                // Single page with JPEG compression
-                                pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'MEDIUM');
-                                console.log('Added single page to PDF');
-                            } else {
-                                // Multi-page handling with compression
-                                console.log('Content requires multiple pages');
-                                const pageHeight = availableHeight;
-                                const totalPages = Math.ceil(finalHeight / pageHeight);
-                                
-                                for (let i = 0; i < totalPages; i++) {
-                                    if (i > 0) {
-                                        pdf.addPage();
-                                        console.log(`Added page ${i + 1}`);
-                                    }
-                                    
-                                    const sourceY = (canvasHeight / totalPages) * i;
-                                    const sourceHeight = Math.min(canvasHeight / totalPages, canvasHeight - sourceY);
-                                    
-                                    // Create canvas for this page section
-                                    const pageCanvas = document.createElement('canvas');
-                                    pageCanvas.width = canvasWidth;
-                                    pageCanvas.height = sourceHeight;
-                                    const pageCtx = pageCanvas.getContext('2d');
-                                    
-                                    pageCtx.fillStyle = '#ffffff';
-                                    pageCtx.fillRect(0, 0, canvasWidth, sourceHeight);
-                                    pageCtx.drawImage(canvas, 0, sourceY, canvasWidth, sourceHeight, 0, 0, canvasWidth, sourceHeight);
-                                    
-                                    // Use JPEG compression for page sections too
-                                    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.7);
-                                    const pageHeightMm = sourceHeight * pxToMm * scale;
-                                    
-                                    pdf.addImage(pageImgData, 'JPEG', imgX, imgY, finalWidth, pageHeightMm, undefined, 'MEDIUM');
-                                }
+                            // Add image with lowest quality setting for smallest size
+                            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
+                            
+                            // Check actual PDF size
+                            const pdfBlob = pdf.output('blob');
+                            const actualSize = pdfBlob.size;
+                            console.log(`Actual PDF size: ${(actualSize / 1024 / 1024).toFixed(2)}MB`);
+                            
+                            if (actualSize > maxSize) {
+                                console.warn(`PDF size (${(actualSize / 1024 / 1024).toFixed(2)}MB) exceeds 2MB limit, but proceeding with download`);
                             }
                             
-                            // Generate filename - use provided filename or create default
+                            // Generate filename
                             const finalFilename = filename || `Quote_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
                             
-                            console.log(`Saving PDF as: ${finalFilename}`);
+                            console.log(`Saving optimized PDF as: ${finalFilename}`);
                             
-                            // Try multiple download methods for better compatibility
+                            // Save the PDF
                             try {
-                                // Method 1: Direct save (works in most browsers)
                                 pdf.save(finalFilename);
-                                console.log('PDF saved using direct method');
+                                console.log('PDF saved successfully');
                             } catch (saveError) {
-                                console.warn('Direct save failed, trying alternative method:', saveError);
+                                console.warn('Direct save failed, trying blob method:', saveError);
                                 
-                                // Method 2: Create blob and download link
-                                try {
-                                    const pdfBlob = pdf.output('blob');
-                                    const url = URL.createObjectURL(pdfBlob);
-                                    
-                                    const downloadLink = document.createElement('a');
-                                    downloadLink.href = url;
-                                    downloadLink.download = finalFilename;
-                                    downloadLink.style.display = 'none';
-                                    
-                                    document.body.appendChild(downloadLink);
-                                    downloadLink.click();
-                                    document.body.removeChild(downloadLink);
-                                    
-                                    // Clean up the URL object
-                                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                                    
-                                    console.log('PDF saved using blob method');
-                                } catch (blobError) {
-                                    console.warn('Blob method failed, trying data URL method:', blobError);
-                                    
-                                    // Method 3: Data URL method
-                                    try {
-                                        const pdfDataUri = pdf.output('datauristring');
-                                        const downloadLink = document.createElement('a');
-                                        downloadLink.href = pdfDataUri;
-                                        downloadLink.download = finalFilename;
-                                        downloadLink.style.display = 'none';
-                                        
-                                        document.body.appendChild(downloadLink);
-                                        downloadLink.click();
-                                        document.body.removeChild(downloadLink);
-                                        
-                                        console.log('PDF saved using data URI method');
-                                    } catch (dataUriError) {
-                                        console.error('All download methods failed:', dataUriError);
-                                        throw new Error('Unable to download PDF. Browser may be blocking downloads.');
-                                    }
-                                }
+                                const url = URL.createObjectURL(pdfBlob);
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = url;
+                                downloadLink.download = finalFilename;
+                                downloadLink.style.display = 'none';
+                                
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                                
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                                console.log('PDF saved using blob method');
                             }
                             
-                            console.log('PDF download completed successfully!');
-                            resolve({ pdf, filename: finalFilename });
+                            resolve({ 
+                                pdf, 
+                                filename: finalFilename, 
+                                size: actualSize,
+                                sizeFormatted: `${(actualSize / 1024 / 1024).toFixed(2)}MB`
+                            });
                             
                         } catch (pdfError) {
                             console.error('PDF generation error:', pdfError);
-                            // Clean up on error
                             if (document.body.contains(tempContainer)) {
                                 document.body.removeChild(tempContainer);
                             }
@@ -1718,13 +1720,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                         }
                     }).catch(canvasError => {
                         console.error('Canvas generation error:', canvasError);
-                        // Clean up on error
                         if (document.body.contains(tempContainer)) {
                             document.body.removeChild(tempContainer);
                         }
                         reject(new Error(`Image capture failed: ${canvasError.message}. Try refreshing the page.`));
                     });
-                }, 2000); // Increased wait time for better rendering
+                }, 1000); // Reduced wait time
             } catch (error) {
                 console.error('PDF generation setup error:', error);
                 reject(new Error(`PDF generation failed: ${error.message}`));
@@ -3554,5 +3555,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d810f116e8a6ac',t:'MTc1NzYwMzE1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d908e4b1d713ca',t:'MTc1NzYxMzMxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
