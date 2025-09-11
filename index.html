@@ -1479,76 +1479,118 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
 
         function generatePDFContent(element, filename, resolve, reject) {
             try {
-                console.log('Starting PDF generation with 2MB size limit...');
+                console.log('Starting PDF generation with 3MB size limit and enhanced quality...');
 
-                // Create a clean container for PDF generation - optimized for minimal size
+                // Create a professional container for PDF generation - optimized for quality
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
                     position: absolute;
                     left: -9999px;
                     top: 0;
-                    width: 500px;
+                    width: 800px;
                     background-color: #ffffff;
-                    padding: 20px;
-                    font-family: Arial, sans-serif;
-                    color: #000000;
-                    line-height: 1.2;
-                    font-size: 12px;
+                    padding: 40px;
+                    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #1f2937;
+                    line-height: 1.5;
+                    font-size: 14px;
                 `;
                 
-                // Clone the content and aggressively optimize for size
+                // Clone the content and optimize for professional appearance
                 const clonedContent = element.cloneNode(true);
                 
-                // Aggressive optimization for minimal file size
+                // Professional styling optimization
                 const allElements = clonedContent.querySelectorAll('*');
                 allElements.forEach(el => {
-                    // Force black text and remove all styling that increases size
-                    el.style.color = '#000000';
-                    el.style.background = 'transparent';
-                    el.style.backgroundColor = 'transparent';
-                    el.style.boxShadow = 'none';
-                    el.style.textShadow = 'none';
-                    el.style.filter = 'none';
-                    el.style.borderRadius = '0';
-                    el.style.border = el.tagName === 'TABLE' || el.tagName === 'TD' || el.tagName === 'TH' ? '1px solid #000' : 'none';
+                    // Preserve professional colors and styling
+                    if (el.classList.contains('text-blue-600') || el.classList.contains('text-blue-700')) {
+                        el.style.color = '#2563eb';
+                    } else if (el.classList.contains('text-green-600') || el.classList.contains('text-green-700')) {
+                        el.style.color = '#059669';
+                    } else if (el.classList.contains('text-gray-900')) {
+                        el.style.color = '#111827';
+                    } else if (el.classList.contains('text-gray-800')) {
+                        el.style.color = '#1f2937';
+                    } else if (el.classList.contains('text-gray-600')) {
+                        el.style.color = '#4b5563';
+                    } else if (el.classList.contains('text-gray-500')) {
+                        el.style.color = '#6b7280';
+                    }
                     
-                    // Minimize font sizes for compression
+                    // Preserve background colors for professional appearance
+                    if (el.classList.contains('bg-gray-50')) {
+                        el.style.backgroundColor = '#f9fafb';
+                    } else if (el.classList.contains('bg-blue-50')) {
+                        el.style.backgroundColor = '#eff6ff';
+                    } else if (el.classList.contains('bg-gray-100')) {
+                        el.style.backgroundColor = '#f3f4f6';
+                    }
+                    
+                    // Preserve borders for tables and structure
+                    if (el.tagName === 'TABLE') {
+                        el.style.border = '1px solid #d1d5db';
+                        el.style.borderCollapse = 'collapse';
+                    } else if (el.tagName === 'TD' || el.tagName === 'TH') {
+                        el.style.border = '1px solid #e5e7eb';
+                        el.style.padding = '8px 12px';
+                    } else if (el.tagName === 'TH') {
+                        el.style.backgroundColor = '#f3f4f6';
+                        el.style.fontWeight = '600';
+                    }
+                    
+                    // Enhance font sizes for better readability
                     const fontSize = window.getComputedStyle(el).fontSize;
                     if (fontSize && fontSize !== 'inherit') {
                         const size = parseFloat(fontSize);
-                        if (size > 10) {
-                            el.style.fontSize = Math.max(10, size * 0.8) + 'px';
+                        if (size < 12) {
+                            el.style.fontSize = '12px';
+                        } else if (size > 32) {
+                            el.style.fontSize = '28px';
                         }
                     }
                     
-                    // Remove images and replace with text placeholders to save space
-                    if (el.tagName === 'IMG') {
+                    // Preserve company logo with better handling
+                    if (el.tagName === 'IMG' && el.alt && el.alt.includes('Logo')) {
+                        // Keep logos but ensure they're properly sized
+                        el.style.maxWidth = '150px';
+                        el.style.maxHeight = '80px';
+                        el.style.objectFit = 'contain';
+                    } else if (el.tagName === 'IMG') {
+                        // Replace other images with professional placeholders
                         const textNode = document.createElement('div');
-                        textNode.textContent = '[LOGO]';
-                        textNode.style.cssText = 'font-weight: bold; text-align: center; padding: 10px; border: 1px solid #000;';
+                        textNode.textContent = '[IMAGE]';
+                        textNode.style.cssText = 'font-weight: 500; text-align: center; padding: 20px; border: 2px dashed #d1d5db; color: #6b7280; background-color: #f9fafb;';
                         el.parentNode.replaceChild(textNode, el);
                     }
                     
-                    // Simplify SVGs to text
+                    // Convert SVGs to professional text representations
                     if (el.tagName === 'SVG') {
-                        const textNode = document.createElement('span');
-                        textNode.textContent = '[LOGO]';
-                        textNode.style.cssText = 'font-weight: bold;';
+                        const textNode = document.createElement('div');
+                        textNode.textContent = '◆ LOGO ◆';
+                        textNode.style.cssText = 'font-weight: bold; color: #2563eb; font-size: 16px; text-align: center;';
                         el.parentNode.replaceChild(textNode, el);
                     }
+                    
+                    // Remove problematic styling that can cause rendering issues
+                    el.style.boxShadow = 'none';
+                    el.style.textShadow = 'none';
+                    el.style.filter = 'none';
+                    el.style.transform = 'none';
+                    el.style.animation = 'none';
+                    el.style.transition = 'none';
                 });
                 
                 tempContainer.appendChild(clonedContent);
                 document.body.appendChild(tempContainer);
 
-                console.log('Temporary container created with size optimizations...');
+                console.log('Professional container created with enhanced styling...');
 
-                // Shorter wait time for faster processing
+                // Allow more time for proper rendering
                 setTimeout(() => {
-                    console.log('Starting html2canvas capture with minimal settings...');
+                    console.log('Starting html2canvas capture with high-quality settings...');
                     
                     const options = {
-                        scale: 0.8, // Much smaller scale for tiny file size
+                        scale: 2, // Higher scale for better quality
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: '#ffffff',
@@ -1558,22 +1600,19 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                         scrollY: 0,
                         logging: false,
                         removeContainer: false,
-                        imageTimeout: 3000,
+                        imageTimeout: 5000,
+                        letterRendering: true, // Better text rendering
                         onclone: function(clonedDoc) {
-                            // Remove all unnecessary elements
+                            // Ensure fonts are properly loaded
                             const clonedElements = clonedDoc.querySelectorAll('*');
                             clonedElements.forEach(el => {
-                                el.style.boxShadow = 'none';
-                                el.style.textShadow = 'none';
-                                el.style.filter = 'none';
-                                el.style.background = 'transparent';
-                                el.style.backgroundImage = 'none';
+                                el.style.fontFamily = '"Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
                             });
                         }
                     };
 
                     html2canvas(tempContainer, options).then(canvas => {
-                        console.log('Canvas created, optimizing for 2MB limit...');
+                        console.log('High-quality canvas created, optimizing for 3MB limit...');
                         
                         try {
                             // Clean up temporary container
@@ -1581,8 +1620,8 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 document.body.removeChild(tempContainer);
                             }
 
-                            // Start with very low quality and increase if size allows
-                            let quality = 0.3; // Start at 30% quality
+                            // Start with higher quality and optimize down if needed
+                            let quality = 0.85; // Start at 85% quality for professional appearance
                             let imgData = canvas.toDataURL('image/jpeg', quality);
                             
                             // Verify image data
@@ -1592,31 +1631,30 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
 
                             const { jsPDF } = window.jspdf;
                             
-                            // Function to estimate PDF size
+                            // Function to estimate PDF size more accurately
                             function estimatePDFSize(imageDataUrl) {
-                                // Rough estimation: base64 data size + PDF overhead
-                                const base64Size = imageDataUrl.length * 0.75; // base64 is ~33% larger than binary
-                                return base64Size + 50000; // Add 50KB for PDF structure overhead
+                                const base64Size = imageDataUrl.length * 0.75;
+                                return base64Size + 100000; // Add 100KB for PDF structure overhead
                             }
                             
-                            // Optimize quality to stay under 2MB
-                            const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                            // Optimize quality to stay under 3MB
+                            const maxSize = 3 * 1024 * 1024; // 3MB in bytes
                             let estimatedSize = estimatePDFSize(imgData);
                             
                             console.log(`Initial estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
                             
-                            // If too large, reduce quality further
-                            while (estimatedSize > maxSize && quality > 0.1) {
+                            // Gradually reduce quality if needed, but maintain professional appearance
+                            while (estimatedSize > maxSize && quality > 0.6) {
                                 quality -= 0.05;
                                 imgData = canvas.toDataURL('image/jpeg', quality);
                                 estimatedSize = estimatePDFSize(imgData);
-                                console.log(`Reduced to ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                                console.log(`Adjusted to ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
                             }
                             
-                            // If still too large, resize canvas
+                            // If still too large, resize canvas while maintaining aspect ratio
                             if (estimatedSize > maxSize) {
-                                console.log('Resizing canvas for smaller file size...');
-                                const scaleFactor = Math.sqrt(maxSize / estimatedSize) * 0.8; // Extra margin
+                                console.log('Resizing canvas to fit 3MB limit while maintaining quality...');
+                                const scaleFactor = Math.sqrt(maxSize / estimatedSize) * 0.9; // 90% of calculated to ensure we stay under
                                 const newWidth = Math.floor(canvas.width * scaleFactor);
                                 const newHeight = Math.floor(canvas.height * scaleFactor);
                                 
@@ -1625,11 +1663,14 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 resizedCanvas.height = newHeight;
                                 const ctx = resizedCanvas.getContext('2d');
                                 
+                                // Use high-quality scaling
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
                                 ctx.fillStyle = '#ffffff';
                                 ctx.fillRect(0, 0, newWidth, newHeight);
                                 ctx.drawImage(canvas, 0, 0, newWidth, newHeight);
                                 
-                                imgData = resizedCanvas.toDataURL('image/jpeg', 0.5);
+                                imgData = resizedCanvas.toDataURL('image/jpeg', Math.max(quality, 0.7));
                                 estimatedSize = estimatePDFSize(imgData);
                                 console.log(`Resized to ${newWidth}x${newHeight}, estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`);
                             }
@@ -1639,18 +1680,18 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 unit: 'mm',
                                 format: 'a4',
                                 compress: true,
-                                precision: 2 // Reduce precision for smaller size
+                                precision: 16 // Higher precision for better quality
                             });
                             
                             const pdfWidth = pdf.internal.pageSize.getWidth();
                             const pdfHeight = pdf.internal.pageSize.getHeight();
                             
-                            // Use smaller margins for more content
-                            const margin = 5;
+                            // Professional margins
+                            const margin = 15;
                             const availableWidth = pdfWidth - (margin * 2);
                             const availableHeight = pdfHeight - (margin * 2);
                             
-                            // Calculate dimensions to fit page
+                            // Calculate dimensions to fit page professionally
                             const aspectRatio = canvas.height / canvas.width;
                             let finalWidth = availableWidth;
                             let finalHeight = finalWidth * aspectRatio;
@@ -1664,29 +1705,29 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                             const imgX = (pdfWidth - finalWidth) / 2;
                             const imgY = margin;
 
-                            console.log(`Adding image to PDF: ${finalWidth}x${finalHeight}mm`);
+                            console.log(`Adding high-quality image to PDF: ${finalWidth}x${finalHeight}mm`);
 
-                            // Add image with lowest quality setting for smallest size
-                            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
+                            // Add image with optimal compression for quality/size balance
+                            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'MEDIUM');
                             
                             // Check actual PDF size
                             const pdfBlob = pdf.output('blob');
                             const actualSize = pdfBlob.size;
-                            console.log(`Actual PDF size: ${(actualSize / 1024 / 1024).toFixed(2)}MB`);
+                            console.log(`Final PDF size: ${(actualSize / 1024 / 1024).toFixed(2)}MB`);
                             
                             if (actualSize > maxSize) {
-                                console.warn(`PDF size (${(actualSize / 1024 / 1024).toFixed(2)}MB) exceeds 2MB limit, but proceeding with download`);
+                                console.warn(`PDF size (${(actualSize / 1024 / 1024).toFixed(2)}MB) exceeds 3MB limit, but proceeding with download`);
                             }
                             
                             // Generate filename
                             const finalFilename = filename || `Quote_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
                             
-                            console.log(`Saving optimized PDF as: ${finalFilename}`);
+                            console.log(`Saving professional PDF as: ${finalFilename}`);
                             
                             // Save the PDF
                             try {
                                 pdf.save(finalFilename);
-                                console.log('PDF saved successfully');
+                                console.log('Professional PDF saved successfully');
                             } catch (saveError) {
                                 console.warn('Direct save failed, trying blob method:', saveError);
                                 
@@ -1701,7 +1742,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                                 document.body.removeChild(downloadLink);
                                 
                                 setTimeout(() => URL.revokeObjectURL(url), 1000);
-                                console.log('PDF saved using blob method');
+                                console.log('Professional PDF saved using blob method');
                             }
                             
                             resolve({ 
@@ -1725,7 +1766,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                         }
                         reject(new Error(`Image capture failed: ${canvasError.message}. Try refreshing the page.`));
                     });
-                }, 1000); // Reduced wait time
+                }, 1500); // More time for proper rendering
             } catch (error) {
                 console.error('PDF generation setup error:', error);
                 reject(new Error(`PDF generation failed: ${error.message}`));
@@ -3555,5 +3596,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d908e4b1d713ca',t:'MTc1NzYxMzMxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d9156db2b49341',t:'MTc1NzYxMzgyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
