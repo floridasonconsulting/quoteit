@@ -344,6 +344,9 @@
                         <button id="deleteSelectedItems" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm hidden">
                             🗑️ Delete Selected
                         </button>
+                        <button id="applyMarkupToSelected" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm hidden">
+                            💰 Apply Markup
+                        </button>
                     </div>
                     
                     <div class="flex items-center justify-between mb-3">
@@ -605,6 +608,23 @@
                     <input type="text" id="customerContact" placeholder="Contact Person" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     <input type="email" id="customerEmail" placeholder="Email Address" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     <input type="tel" id="customerPhone" placeholder="Phone Number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    
+                    <!-- Address Section -->
+                    <div class="border-t pt-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Physical Address (Optional)</h4>
+                        <div class="space-y-3">
+                            <input type="text" id="customerAddress" placeholder="Street Address" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" id="customerCity" placeholder="City" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="customerState" placeholder="State/Province" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" id="customerZipCode" placeholder="ZIP/Postal Code" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="customerCountry" placeholder="Country" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button id="saveCustomer" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
                         Add Customer
                     </button>
@@ -730,6 +750,66 @@
         </div>
     </div>
 
+    <!-- Item Markup Modal -->
+    <div id="itemMarkupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl w-full max-w-md">
+                <div class="p-4 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-800">Apply Markup</h3>
+                        <button id="closeMarkupModal" class="p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 space-y-4">
+                    <!-- Item Details -->
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <h4 id="markupItemName" class="font-medium text-gray-800"></h4>
+                        <p id="markupItemDescription" class="text-sm text-gray-600"></p>
+                        <p class="text-sm text-gray-500 mt-1">Base Price: $<span id="markupItemBasePrice">0</span></p>
+                    </div>
+                    
+                    <!-- Markup Options -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Markup Type</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" id="markupModalNone" name="markupModalType" value="none" class="text-blue-600 focus:ring-blue-500">
+                                <label for="markupModalNone" class="text-sm text-gray-700">No markup</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" id="markupModalPercent" name="markupModalType" value="percent" class="text-blue-600 focus:ring-blue-500">
+                                <label for="markupModalPercent" class="text-sm text-gray-700">Percentage:</label>
+                                <input type="number" id="markupModalPercentValue" placeholder="%" step="0.1" min="0" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500" disabled>
+                                <span class="text-sm text-gray-500">%</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" id="markupModalFixed" name="markupModalType" value="fixed" class="text-blue-600 focus:ring-blue-500">
+                                <label for="markupModalFixed" class="text-sm text-gray-700">Fixed amount:</label>
+                                <input type="number" id="markupModalFixedValue" placeholder="0.00" step="0.01" min="0" class="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500" disabled>
+                            </div>
+                        </div>
+                        <div id="markupModalPreview" class="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-800 hidden">
+                            <strong>Final Price: $<span id="markupModalFinalPrice">0.00</span></strong>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button id="cancelMarkup" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                        <button id="applyMarkup" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                            Apply Markup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirmation Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -762,8 +842,8 @@
     <script>
         // Application State
         let customers = [
-            { id: 1, name: "Acme Corporation", contact: "John Smith", email: "john@acme.com", phone: "(555) 123-4567" },
-            { id: 2, name: "Tech Solutions Inc", contact: "Sarah Johnson", email: "sarah@techsol.com", phone: "(555) 987-6543" }
+            { id: 1, name: "Acme Corporation", contact: "John Smith", email: "john@acme.com", phone: "(555) 123-4567", address: "123 Business Ave", city: "New York", state: "NY", zipCode: "10001", country: "USA" },
+            { id: 2, name: "Tech Solutions Inc", contact: "Sarah Johnson", email: "sarah@techsol.com", phone: "(555) 987-6543", address: "456 Tech Street", city: "San Francisco", state: "CA", zipCode: "94102", country: "USA" }
         ];
 
         let items = [
@@ -801,6 +881,7 @@
         let currentTheme = 'light';
         let currentImportType = '';
         let confirmCallback = null;
+        let currentMarkupItemId = null;
 
         // Custom confirmation modal functions
         function showConfirmModal(message, callback) {
@@ -812,6 +893,98 @@
         function hideConfirmModal() {
             hideModal('confirmModal');
             confirmCallback = null;
+        }
+
+        // Markup modal functions
+        function showMarkupModal(itemId) {
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
+            
+            currentMarkupItemId = itemId;
+            
+            // Populate item details
+            document.getElementById('markupItemName').textContent = item.name;
+            document.getElementById('markupItemDescription').textContent = item.description;
+            document.getElementById('markupItemBasePrice').textContent = (item.basePrice || item.price).toLocaleString();
+            
+            // Set current markup values
+            const markupType = item.markupType || 'none';
+            document.querySelector(`input[name="markupModalType"][value="${markupType}"]`).checked = true;
+            
+            if (markupType === 'percent') {
+                document.getElementById('markupModalPercentValue').value = item.markupValue || 0;
+                document.getElementById('markupModalPercentValue').disabled = false;
+                document.getElementById('markupModalFixedValue').disabled = true;
+            } else if (markupType === 'fixed') {
+                document.getElementById('markupModalFixedValue').value = item.markupValue || 0;
+                document.getElementById('markupModalFixedValue').disabled = false;
+                document.getElementById('markupModalPercentValue').disabled = true;
+            } else {
+                document.getElementById('markupModalPercentValue').disabled = true;
+                document.getElementById('markupModalFixedValue').disabled = true;
+                document.getElementById('markupModalPercentValue').value = '';
+                document.getElementById('markupModalFixedValue').value = '';
+            }
+            
+            updateMarkupModalPreview();
+            showModal('itemMarkupModal');
+        }
+
+        function updateMarkupModalPreview() {
+            const item = items.find(i => i.id === currentMarkupItemId);
+            if (!item) return;
+            
+            const basePrice = item.basePrice || item.price;
+            const markupType = document.querySelector('input[name="markupModalType"]:checked').value;
+            let markupValue = 0;
+            
+            if (markupType === 'percent') {
+                markupValue = parseFloat(document.getElementById('markupModalPercentValue').value) || 0;
+            } else if (markupType === 'fixed') {
+                markupValue = parseFloat(document.getElementById('markupModalFixedValue').value) || 0;
+            }
+            
+            const finalPrice = calculateFinalPrice(basePrice, markupType, markupValue);
+            const previewDiv = document.getElementById('markupModalPreview');
+            const amountSpan = document.getElementById('markupModalFinalPrice');
+            
+            if (basePrice > 0 && markupType !== 'none' && markupValue > 0) {
+                amountSpan.textContent = finalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                previewDiv.classList.remove('hidden');
+            } else {
+                previewDiv.classList.add('hidden');
+            }
+        }
+
+        function applyItemMarkup() {
+            const item = items.find(i => i.id === currentMarkupItemId);
+            if (!item) return;
+            
+            const markupType = document.querySelector('input[name="markupModalType"]:checked').value;
+            let markupValue = 0;
+            
+            if (markupType === 'percent') {
+                markupValue = parseFloat(document.getElementById('markupModalPercentValue').value) || 0;
+            } else if (markupType === 'fixed') {
+                markupValue = parseFloat(document.getElementById('markupModalFixedValue').value) || 0;
+            }
+            
+            // Store original price as base price if not already stored
+            if (!item.basePrice) {
+                item.basePrice = item.price;
+            }
+            
+            item.markupType = markupType;
+            item.markupValue = markupValue;
+            item.price = calculateFinalPrice(item.basePrice, markupType, markupValue);
+            
+            renderItems();
+            autoSave();
+            hideModal('itemMarkupModal');
+            
+            const markupDescription = markupType === 'percent' ? `${markupValue}%` : 
+                                    markupType === 'fixed' ? `$${markupValue}` : 'No markup';
+            alert(`✅ Applied ${markupDescription} markup to "${item.name}"!`);
         }
 
         // Bulk Selection Functions
@@ -852,14 +1025,17 @@
             
             const selectAllCheckbox = document.getElementById('selectAllItems');
             const deleteButton = document.getElementById('deleteSelectedItems');
+            const markupButton = document.getElementById('applyMarkupToSelected');
             const countDisplay = document.getElementById('selectedItemsCount');
             
             if (selectedCount > 0) {
                 deleteButton.classList.remove('hidden');
+                markupButton.classList.remove('hidden');
                 countDisplay.classList.remove('hidden');
                 countDisplay.textContent = `${selectedCount} selected`;
             } else {
                 deleteButton.classList.add('hidden');
+                markupButton.classList.add('hidden');
                 countDisplay.classList.add('hidden');
             }
             
@@ -904,6 +1080,121 @@
                 autoSave();
                 hideConfirmModal();
             });
+        }
+
+        function applyMarkupToSelectedItems() {
+            console.log('Apply markup to selected items function called');
+            
+            const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => {
+                const id = parseFloat(cb.dataset.itemId);
+                console.log('Processing checkbox with ID:', cb.dataset.itemId, 'Parsed as:', id);
+                return id;
+            });
+            
+            console.log('Selected item IDs:', selectedIds);
+            console.log('Total items in array:', items.length);
+            
+            if (selectedIds.length === 0) {
+                alert('No items selected. Please select items first.');
+                return;
+            }
+            
+            // Show markup type selection dialog
+            const markupChoice = confirm('Choose markup type:\n\nOK = Percentage markup\nCancel = Fixed amount markup');
+            
+            let markupValue;
+            let markupTypeStr;
+            
+            if (markupChoice) {
+                // Percentage markup
+                const input = prompt('Enter markup percentage (e.g., 25 for 25%):');
+                if (input === null) return; // User cancelled
+                
+                markupValue = parseFloat(input);
+                markupTypeStr = 'percent';
+                
+                if (isNaN(markupValue) || markupValue < 0) {
+                    alert('Invalid percentage. Please enter a positive number.');
+                    return;
+                }
+            } else {
+                // Fixed amount markup
+                const input = prompt('Enter fixed markup amount (e.g., 100 for $100):');
+                if (input === null) return; // User cancelled
+                
+                markupValue = parseFloat(input);
+                markupTypeStr = 'fixed';
+                
+                if (isNaN(markupValue) || markupValue < 0) {
+                    alert('Invalid amount. Please enter a positive number.');
+                    return;
+                }
+            }
+            
+            console.log('Applying markup:', markupTypeStr, markupValue);
+            
+            // Apply markup to selected items with improved matching
+            let updatedCount = 0;
+            
+            selectedIds.forEach(selectedId => {
+                console.log('Looking for item with ID:', selectedId);
+                
+                // Find the item with exact ID match
+                const itemIndex = items.findIndex(item => {
+                    const match = Math.abs(item.id - selectedId) < 0.0001;
+                    if (match) {
+                        console.log('Found matching item:', item.name, 'ID:', item.id);
+                    }
+                    return match;
+                });
+                
+                if (itemIndex !== -1) {
+                    const item = items[itemIndex];
+                    console.log('Updating item:', item.name, 'Original ID:', item.id, 'Selected ID:', selectedId);
+                    
+                    // Store original price as base price if not already stored
+                    if (!item.basePrice) {
+                        item.basePrice = item.price;
+                    }
+                    
+                    const oldPrice = item.price;
+                    item.markupType = markupTypeStr;
+                    item.markupValue = markupValue;
+                    item.price = calculateFinalPrice(item.basePrice, markupTypeStr, markupValue);
+                    updatedCount++;
+                    
+                    console.log('Updated item price from', oldPrice, 'to', item.price);
+                } else {
+                    console.warn('Could not find item with ID:', selectedId);
+                }
+            });
+            
+            console.log('Successfully updated', updatedCount, 'out of', selectedIds.length, 'selected items');
+            
+            if (updatedCount === 0) {
+                alert('❌ No items were updated. This might be due to ID matching issues. Please try selecting items again.');
+                return;
+            }
+            
+            // Clear all selections after applying markup
+            document.querySelectorAll('.item-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            const selectAllCheckbox = document.getElementById('selectAllItems');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+            
+            // Update UI
+            renderItems();
+            updateItemSelection();
+            autoSave();
+            
+            const markupDescription = markupTypeStr === 'percent' ? `${markupValue}%` : `$${markupValue}`;
+            alert(`✅ Applied ${markupDescription} markup to ${updatedCount} item(s)!\n\nAll selections have been cleared.`);
         }
 
         // Markup calculation functions
@@ -1204,6 +1495,9 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                             <p class="text-gray-600">${customer.contact}</p>
                             <p class="text-gray-600">${customer.email}</p>
                             <p class="text-gray-600">${customer.phone}</p>
+                            ${customer.address ? `<p class="text-gray-600 mt-2">${customer.address}</p>` : ''}
+                            ${customer.city || customer.state || customer.zipCode ? `<p class="text-gray-600">${customer.city ? customer.city : ''}${customer.city && customer.state ? ', ' : ''}${customer.state ? customer.state : ''}${customer.zipCode ? ' ' + customer.zipCode : ''}</p>` : ''}
+                            ${customer.country ? `<p class="text-gray-600">${customer.country}</p>` : ''}
                         </div>
                     </div>
 
@@ -2061,6 +2355,9 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                             <p class="text-gray-600">${customer.contact}</p>
                             <p class="text-gray-600">${customer.email}</p>
                             <p class="text-gray-600">${customer.phone}</p>
+                            ${customer.address ? `<p class="text-gray-600 mt-2">${customer.address}</p>` : ''}
+                            ${customer.city || customer.state || customer.zipCode ? `<p class="text-gray-600">${customer.city ? customer.city : ''}${customer.city && customer.state ? ', ' : ''}${customer.state ? customer.state : ''}${customer.zipCode ? ' ' + customer.zipCode : ''}</p>` : ''}
+                            ${customer.country ? `<p class="text-gray-600">${customer.country}</p>` : ''}
                         </div>
                     </div>
 
@@ -2144,7 +2441,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             const filteredCustomers = customers.filter(customer => 
                 customer.name.toLowerCase().includes(searchTerm) ||
                 customer.contact.toLowerCase().includes(searchTerm) ||
-                customer.email.toLowerCase().includes(searchTerm)
+                customer.email.toLowerCase().includes(searchTerm) ||
+                (customer.address && customer.address.toLowerCase().includes(searchTerm)) ||
+                (customer.city && customer.city.toLowerCase().includes(searchTerm)) ||
+                (customer.state && customer.state.toLowerCase().includes(searchTerm)) ||
+                (customer.zipCode && customer.zipCode.toLowerCase().includes(searchTerm)) ||
+                (customer.country && customer.country.toLowerCase().includes(searchTerm))
             );
 
             container.innerHTML = filteredCustomers.map(customer => `
@@ -2156,6 +2458,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                             <p class="text-sm text-gray-600">${customer.contact}</p>
                             <p class="text-sm text-blue-600">${customer.email}</p>
                             <p class="text-sm text-gray-500">${customer.phone}</p>
+                            ${customer.address ? `<p class="text-sm text-gray-500 mt-1">📍 ${customer.address}${customer.city ? `, ${customer.city}` : ''}${customer.state ? `, ${customer.state}` : ''}${customer.zipCode ? ` ${customer.zipCode}` : ''}${customer.country ? `, ${customer.country}` : ''}</p>` : ''}
                         </div>
                         <div class="flex space-x-2">
                             <button class="edit-customer-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-customer-id="${customer.id}">
@@ -2206,6 +2509,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                         document.getElementById('customerContact').value = customer.contact;
                         document.getElementById('customerEmail').value = customer.email;
                         document.getElementById('customerPhone').value = customer.phone;
+                        document.getElementById('customerAddress').value = customer.address || '';
+                        document.getElementById('customerCity').value = customer.city || '';
+                        document.getElementById('customerState').value = customer.state || '';
+                        document.getElementById('customerZipCode').value = customer.zipCode || '';
+                        document.getElementById('customerCountry').value = customer.country || '';
                         showModal('customerModal');
                     }
                 });
@@ -2308,6 +2616,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
                                     </button>
+                                    <button class="markup-item-btn text-orange-500 hover:bg-orange-50 p-2 rounded-lg" data-item-id="${item.id}" title="Apply Markup">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
                                     <button class="delete-item-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-item-id="${item.id}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -2405,6 +2718,14 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                         updateItemPricePreview();
                         showModal('itemModal');
                     }
+                });
+            });
+
+            container.querySelectorAll('.markup-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const itemId = parseFloat(btn.dataset.itemId);
+                    showMarkupModal(itemId);
                 });
             });
 
@@ -3317,6 +3638,14 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                         <li><strong>email</strong> - Email address</li>
                         <li><strong>phone</strong> - Phone number</li>
                     </ul>
+                    <p class="font-medium mb-2 mt-3">Optional columns:</p>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>address</strong> - Street address</li>
+                        <li><strong>city</strong> - City</li>
+                        <li><strong>state</strong> - State/Province</li>
+                        <li><strong>zipCode</strong> - ZIP/Postal code</li>
+                        <li><strong>country</strong> - Country</li>
+                    </ul>
                 `;
                 showModal('importModal');
             });
@@ -3336,33 +3665,159 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 showModal('importModal');
             });
 
-            document.getElementById('exportCustomersBtn').addEventListener('click', () => {
-                if (!window.XLSX) {
-                    alert('Excel library not loaded. Please refresh the page and try again.');
-                    return;
+            // Export functionality with proper error handling
+            function exportCustomersToExcel() {
+                try {
+                    console.log('Starting customer export...');
+                    
+                    // Check if XLSX library is available with timeout
+                    let attempts = 0;
+                    const maxAttempts = 5;
+                    
+                    const checkAndExport = () => {
+                        attempts++;
+                        
+                        if (window.XLSX && window.XLSX.utils && window.XLSX.writeFile) {
+                            // Library is loaded, proceed with export
+                            if (customers.length === 0) {
+                                alert('No customers to export.');
+                                return;
+                            }
+                            
+                            console.log(`Exporting ${customers.length} customers...`);
+                            
+                            const exportData = customers.map(c => ({
+                                name: c.name || '',
+                                contact: c.contact || '',
+                                email: c.email || '',
+                                phone: c.phone || '',
+                                address: c.address || '',
+                                city: c.city || '',
+                                state: c.state || '',
+                                zipCode: c.zipCode || '',
+                                country: c.country || ''
+                            }));
+                            
+                            console.log('Customer export data prepared:', exportData.length, 'records');
+                            
+                            const ws = XLSX.utils.json_to_sheet(exportData);
+                            const wb = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(wb, ws, "Customers");
+                            
+                            const filename = `customers_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                            console.log('Writing file:', filename);
+                            
+                            XLSX.writeFile(wb, filename);
+                            
+                            console.log('Customer export completed successfully');
+                            alert(`✅ Successfully exported ${customers.length} customers to ${filename}!`);
+                            return;
+                        }
+                        
+                        if (attempts >= maxAttempts) {
+                            console.error('XLSX library failed to load after multiple attempts');
+                            alert('❌ Excel export library not available. Please refresh the page and try again.');
+                            return;
+                        }
+                        
+                        // Wait and try again
+                        setTimeout(checkAndExport, 500);
+                    };
+                    
+                    checkAndExport();
+                    
+                } catch (error) {
+                    console.error('Customer export error:', error);
+                    alert(`❌ Failed to export customers: ${error.message}`);
                 }
-                const exportData = customers.map(c => ({
-                    name: c.name,
-                    contact: c.contact,
-                    email: c.email,
-                    phone: c.phone
-                }));
-                exportToExcel(exportData, 'customers.xlsx', ['name', 'contact', 'email', 'phone']);
-            });
+            }
 
-            document.getElementById('exportItemsBtn').addEventListener('click', () => {
-                if (!window.XLSX) {
-                    alert('Excel library not loaded. Please refresh the page and try again.');
-                    return;
+            function exportItemsToExcel() {
+                try {
+                    console.log('Starting items export...');
+                    
+                    // Check if XLSX library is available with timeout
+                    let attempts = 0;
+                    const maxAttempts = 5;
+                    
+                    const checkAndExport = () => {
+                        attempts++;
+                        
+                        if (window.XLSX && window.XLSX.utils && window.XLSX.writeFile) {
+                            // Library is loaded, proceed with export
+                            if (items.length === 0) {
+                                alert('No items to export.');
+                                return;
+                            }
+                            
+                            console.log(`Exporting ${items.length} items...`);
+                            
+                            const exportData = items.map(i => ({
+                                name: i.name || '',
+                                category: i.category || 'Uncategorized',
+                                description: i.description || '',
+                                basePrice: i.basePrice || i.price || 0,
+                                markupType: i.markupType || 'none',
+                                markupValue: i.markupValue || 0,
+                                finalPrice: i.price || 0
+                            }));
+                            
+                            console.log('Items export data prepared:', exportData.length, 'records');
+                            
+                            const ws = XLSX.utils.json_to_sheet(exportData);
+                            const wb = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(wb, ws, "Items");
+                            
+                            const filename = `items_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                            console.log('Writing file:', filename);
+                            
+                            XLSX.writeFile(wb, filename);
+                            
+                            console.log('Items export completed successfully');
+                            alert(`✅ Successfully exported ${items.length} items to ${filename}!`);
+                            return;
+                        }
+                        
+                        if (attempts >= maxAttempts) {
+                            console.error('XLSX library failed to load after multiple attempts');
+                            alert('❌ Excel export library not available. Please refresh the page and try again.');
+                            return;
+                        }
+                        
+                        // Wait and try again
+                        setTimeout(checkAndExport, 500);
+                    };
+                    
+                    checkAndExport();
+                    
+                } catch (error) {
+                    console.error('Items export error:', error);
+                    alert(`❌ Failed to export items: ${error.message}`);
                 }
-                const exportData = items.map(i => ({
-                    name: i.name,
-                    category: i.category || 'Uncategorized',
-                    description: i.description,
-                    price: i.price
-                }));
-                exportToExcel(exportData, 'items.xlsx', ['name', 'category', 'description', 'price']);
-            });
+            }
+
+            // Add event listeners with proper error handling
+            const exportCustomersBtn = document.getElementById('exportCustomersBtn');
+            if (exportCustomersBtn) {
+                exportCustomersBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Export customers button clicked');
+                    exportCustomersToExcel();
+                });
+            } else {
+                console.error('Export customers button not found');
+            }
+
+            const exportItemsBtn = document.getElementById('exportItemsBtn');
+            if (exportItemsBtn) {
+                exportItemsBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Export items button clicked');
+                    exportItemsToExcel();
+                });
+            } else {
+                console.error('Export items button not found');
+            }
 
             document.getElementById('importFile').addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -3386,49 +3841,198 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     }
 
                     if (currentImportType === 'customers') {
-                        let imported = 0;
-                        data.forEach(row => {
-                            if (row.name && row.contact && row.email) {
-                                customers.push({
-                                    id: Date.now() + Math.random(),
-                                    name: row.name,
-                                    contact: row.contact,
-                                    email: row.email,
-                                    phone: row.phone || ''
-                                });
-                                imported++;
-                            }
-                        });
-                        renderCustomers();
-                        alert(`Successfully imported ${imported} customers`);
+                        processCustomerImport(data);
                     } else if (currentImportType === 'items') {
-                        let imported = 0;
-                        data.forEach((row, index) => {
-                            if (row.name && row.description && row.price) {
-                                const basePrice = parseFloat(row.price) || 0;
-                                items.push({
-                                    id: Date.now() + Math.random() + index, // Ensure unique IDs
-                                    name: row.name,
-                                    category: row.category || 'Uncategorized',
-                                    description: row.description,
-                                    basePrice: basePrice,
-                                    price: basePrice,
-                                    markupType: 'none',
-                                    markupValue: 0
-                                });
-                                imported++;
-                            }
-                        });
-                        renderItems();
-                        alert(`Successfully imported ${imported} items`);
+                        processItemImport(data);
                     }
 
-                    autoSave();
                     hideModal('importModal');
                     document.getElementById('importFile').value = '';
                     document.getElementById('processImport').disabled = true;
                 });
             });
+
+            function processCustomerImport(data) {
+                const validRows = data.filter(row => row.name && row.contact && row.email);
+                
+                if (validRows.length === 0) {
+                    alert('No valid customer data found. Please check that your file has the required columns: name, contact, email');
+                    return;
+                }
+
+                // Check for duplicates
+                const duplicates = [];
+                const newCustomers = [];
+                
+                validRows.forEach(row => {
+                    const existingCustomer = customers.find(c => 
+                        c.email.toLowerCase() === row.email.toLowerCase() || 
+                        (c.name.toLowerCase() === row.name.toLowerCase() && c.contact.toLowerCase() === row.contact.toLowerCase())
+                    );
+                    
+                    if (existingCustomer) {
+                        duplicates.push({ row, existing: existingCustomer });
+                    } else {
+                        newCustomers.push(row);
+                    }
+                });
+
+                if (duplicates.length > 0) {
+                    handleCustomerDuplicates(duplicates, newCustomers);
+                } else {
+                    // No duplicates, import all
+                    importNewCustomers(newCustomers);
+                }
+            }
+
+            function processItemImport(data) {
+                const validRows = data.filter(row => row.name && row.description && row.price);
+                
+                if (validRows.length === 0) {
+                    alert('No valid item data found. Please check that your file has the required columns: name, description, price');
+                    return;
+                }
+
+                // Check for duplicates
+                const duplicates = [];
+                const newItems = [];
+                
+                validRows.forEach(row => {
+                    const existingItem = items.find(i => 
+                        i.name.toLowerCase() === row.name.toLowerCase() && 
+                        i.description.toLowerCase() === row.description.toLowerCase()
+                    );
+                    
+                    if (existingItem) {
+                        duplicates.push({ row, existing: existingItem });
+                    } else {
+                        newItems.push(row);
+                    }
+                });
+
+                if (duplicates.length > 0) {
+                    handleItemDuplicates(duplicates, newItems);
+                } else {
+                    // No duplicates, import all
+                    importNewItems(newItems);
+                }
+            }
+
+            function handleCustomerDuplicates(duplicates, newCustomers) {
+                const message = `Found ${duplicates.length} duplicate customer(s) based on email or name+contact.\n\nChoose an option:`;
+                const choice = confirm(`${message}\n\nOK = Skip all duplicates\nCancel = Replace all duplicates`);
+                
+                if (choice) {
+                    // Skip duplicates, only import new customers
+                    importNewCustomers(newCustomers);
+                    alert(`Imported ${newCustomers.length} new customers. Skipped ${duplicates.length} duplicates.`);
+                } else {
+                    // Replace duplicates
+                    duplicates.forEach(({ row, existing }) => {
+                        const customerIndex = customers.findIndex(c => c.id === existing.id);
+                        if (customerIndex !== -1) {
+                            customers[customerIndex] = {
+                                id: existing.id, // Keep original ID
+                                name: row.name,
+                                contact: row.contact,
+                                email: row.email,
+                                phone: row.phone || '',
+                                address: row.address || '',
+                                city: row.city || '',
+                                state: row.state || '',
+                                zipCode: row.zipCode || '',
+                                country: row.country || ''
+                            };
+                        }
+                    });
+                    
+                    importNewCustomers(newCustomers);
+                    renderCustomers();
+                    autoSave();
+                    alert(`Imported ${newCustomers.length} new customers and replaced ${duplicates.length} existing customers.`);
+                }
+            }
+
+            function handleItemDuplicates(duplicates, newItems) {
+                const message = `Found ${duplicates.length} duplicate item(s) based on name and description.\n\nChoose an option:`;
+                const choice = confirm(`${message}\n\nOK = Skip all duplicates\nCancel = Replace all duplicates`);
+                
+                if (choice) {
+                    // Skip duplicates, only import new items
+                    importNewItems(newItems);
+                    alert(`Imported ${newItems.length} new items. Skipped ${duplicates.length} duplicates.`);
+                } else {
+                    // Replace duplicates
+                    duplicates.forEach(({ row, existing }) => {
+                        const itemIndex = items.findIndex(i => i.id === existing.id);
+                        if (itemIndex !== -1) {
+                            const basePrice = parseFloat(row.price) || 0;
+                            items[itemIndex] = {
+                                id: existing.id, // Keep original ID
+                                name: row.name,
+                                category: row.category || 'Uncategorized',
+                                description: row.description,
+                                basePrice: basePrice,
+                                price: basePrice,
+                                markupType: 'none',
+                                markupValue: 0
+                            };
+                        }
+                    });
+                    
+                    importNewItems(newItems);
+                    renderItems();
+                    autoSave();
+                    alert(`Imported ${newItems.length} new items and replaced ${duplicates.length} existing items.`);
+                }
+            }
+
+            function importNewCustomers(newCustomers) {
+                newCustomers.forEach(row => {
+                    customers.push({
+                        id: Date.now() + Math.random(),
+                        name: row.name,
+                        contact: row.contact,
+                        email: row.email,
+                        phone: row.phone || '',
+                        address: row.address || '',
+                        city: row.city || '',
+                        state: row.state || '',
+                        zipCode: row.zipCode || '',
+                        country: row.country || ''
+                    });
+                });
+                
+                renderCustomers();
+                autoSave();
+                
+                if (newCustomers.length > 0) {
+                    alert(`Successfully imported ${newCustomers.length} new customers.`);
+                }
+            }
+
+            function importNewItems(newItems) {
+                newItems.forEach((row, index) => {
+                    const basePrice = parseFloat(row.price) || 0;
+                    items.push({
+                        id: Date.now() + Math.random() + index,
+                        name: row.name,
+                        category: row.category || 'Uncategorized',
+                        description: row.description,
+                        basePrice: basePrice,
+                        price: basePrice,
+                        markupType: 'none',
+                        markupValue: 0
+                    });
+                });
+                
+                renderItems();
+                autoSave();
+                
+                if (newItems.length > 0) {
+                    alert(`Successfully imported ${newItems.length} new items.`);
+                }
+            }
 
             // Customer modal
             document.getElementById('addCustomerBtn').addEventListener('click', () => {
@@ -3438,6 +4042,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 document.getElementById('customerContact').value = '';
                 document.getElementById('customerEmail').value = '';
                 document.getElementById('customerPhone').value = '';
+                document.getElementById('customerAddress').value = '';
+                document.getElementById('customerCity').value = '';
+                document.getElementById('customerState').value = '';
+                document.getElementById('customerZipCode').value = '';
+                document.getElementById('customerCountry').value = '';
                 showModal('customerModal');
             });
 
@@ -3446,6 +4055,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 const contact = document.getElementById('customerContact').value.trim();
                 const email = document.getElementById('customerEmail').value.trim();
                 const phone = document.getElementById('customerPhone').value.trim();
+                const address = document.getElementById('customerAddress').value.trim();
+                const city = document.getElementById('customerCity').value.trim();
+                const state = document.getElementById('customerState').value.trim();
+                const zipCode = document.getElementById('customerZipCode').value.trim();
+                const country = document.getElementById('customerCountry').value.trim();
 
                 if (name && contact && email) {
                     if (editingCustomerId) {
@@ -3456,7 +4070,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                                 name,
                                 contact,
                                 email,
-                                phone
+                                phone,
+                                address,
+                                city,
+                                state,
+                                zipCode,
+                                country
                             };
                         }
                     } else {
@@ -3465,7 +4084,12 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                             name,
                             contact,
                             email,
-                            phone
+                            phone,
+                            address,
+                            city,
+                            state,
+                            zipCode,
+                            country
                         };
                         customers.push(newCustomer);
                     }
@@ -3477,6 +4101,11 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     document.getElementById('customerContact').value = '';
                     document.getElementById('customerEmail').value = '';
                     document.getElementById('customerPhone').value = '';
+                    document.getElementById('customerAddress').value = '';
+                    document.getElementById('customerCity').value = '';
+                    document.getElementById('customerState').value = '';
+                    document.getElementById('customerZipCode').value = '';
+                    document.getElementById('customerCountry').value = '';
                     editingCustomerId = null;
                     
                     hideModal('customerModal');
@@ -3626,8 +4255,29 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 updateItemSelection();
             });
 
-            document.getElementById('deleteSelectedCustomers').addEventListener('click', deleteSelectedCustomers);
-            document.getElementById('deleteSelectedItems').addEventListener('click', deleteSelectedItems);
+            document.getElementById('deleteSelectedCustomers').addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Delete selected customers clicked');
+                deleteSelectedCustomers();
+            });
+            
+            document.getElementById('deleteSelectedItems').addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Delete selected items clicked');
+                deleteSelectedItems();
+            });
+            
+            // Add event listener for bulk markup button with proper error handling
+            const applyMarkupBtn = document.getElementById('applyMarkupToSelected');
+            if (applyMarkupBtn) {
+                applyMarkupBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Apply markup to selected button clicked');
+                    applyMarkupToSelectedItems();
+                });
+            } else {
+                console.error('Apply markup button not found in DOM');
+            }
 
             // Search functionality
             document.getElementById('customerSearch').addEventListener('input', renderCustomers);
@@ -3637,6 +4287,48 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             document.getElementById('agingFilter')?.addEventListener('change', () => {
                 renderAgingQuotesList();
             });
+
+            // Markup modal event listeners
+            document.getElementById('closeMarkupModal').addEventListener('click', () => {
+                hideModal('itemMarkupModal');
+            });
+
+            document.getElementById('cancelMarkup').addEventListener('click', () => {
+                hideModal('itemMarkupModal');
+            });
+
+            document.getElementById('applyMarkup').addEventListener('click', () => {
+                applyItemMarkup();
+            });
+
+            // Markup modal radio button event listeners
+            document.querySelectorAll('input[name="markupModalType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const markupType = e.target.value;
+                    const percentInput = document.getElementById('markupModalPercentValue');
+                    const fixedInput = document.getElementById('markupModalFixedValue');
+                    
+                    if (markupType === 'percent') {
+                        percentInput.disabled = false;
+                        fixedInput.disabled = true;
+                        fixedInput.value = '';
+                    } else if (markupType === 'fixed') {
+                        fixedInput.disabled = false;
+                        percentInput.disabled = true;
+                        percentInput.value = '';
+                    } else {
+                        percentInput.disabled = true;
+                        fixedInput.disabled = true;
+                        percentInput.value = '';
+                        fixedInput.value = '';
+                    }
+                    updateMarkupModalPreview();
+                });
+            });
+
+            // Markup modal value input listeners
+            document.getElementById('markupModalPercentValue').addEventListener('input', updateMarkupModalPreview);
+            document.getElementById('markupModalFixedValue').addEventListener('input', updateMarkupModalPreview);
 
             // Confirmation modal event listeners
             document.getElementById('confirmCancel').addEventListener('click', () => {
@@ -3683,5 +4375,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d93419651fa6ac',t:'MTc1NzYxNTA4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97da71b4b06f13ca',t:'MTc1NzYyODA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
