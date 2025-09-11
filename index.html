@@ -883,6 +883,80 @@
         let confirmCallback = null;
         let currentMarkupItemId = null;
 
+        // Custom notification system
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.custom-notification');
+            existingNotifications.forEach(notification => notification.remove());
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `custom-notification fixed top-4 right-4 z-50 max-w-sm p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            // Set colors based on type
+            let bgColor, textColor, icon;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                    icon = '✅';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    textColor = 'text-white';
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    icon = '⚠️';
+                    break;
+                default:
+                    bgColor = 'bg-blue-500';
+                    textColor = 'text-white';
+                    icon = 'ℹ️';
+            }
+            
+            notification.classList.add(bgColor, textColor);
+            
+            notification.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <span class="text-lg">${icon}</span>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${message}</p>
+                    </div>
+                    <button class="notification-close ml-2 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // Add to DOM
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Add close functionality
+            const closeBtn = notification.querySelector('.notification-close');
+            closeBtn.addEventListener('click', () => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            });
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
         // Custom confirmation modal functions
         function showConfirmModal(message, callback) {
             document.getElementById('confirmMessage').textContent = message;
@@ -1096,41 +1170,124 @@
             console.log('Total items in array:', items.length);
             
             if (selectedIds.length === 0) {
-                alert('No items selected. Please select items first.');
+                showNotification('No items selected. Please select items first.', 'warning');
                 return;
             }
             
-            // Show markup type selection dialog
-            const markupChoice = confirm('Choose markup type:\n\nOK = Percentage markup\nCancel = Fixed amount markup');
+            // Show bulk markup modal
+            showBulkMarkupModal(selectedIds);
+        }
+
+        function showBulkMarkupModal(selectedIds) {
+            // Create and show bulk markup modal
+            const modalHtml = `
+                <div id="bulkMarkupModal" class="fixed inset-0 bg-black bg-opacity-50 z-50">
+                    <div class="flex items-center justify-center min-h-screen p-4">
+                        <div class="bg-white rounded-2xl w-full max-w-md">
+                            <div class="p-4 border-b">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-semibold text-gray-800">Apply Bulk Markup</h3>
+                                    <button id="closeBulkMarkupModal" class="p-2 hover:bg-gray-100 rounded-lg">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-4 space-y-4">
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-sm text-blue-800">Applying markup to <strong>${selectedIds.length} selected items</strong></p>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Markup Type</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="radio" id="bulkMarkupPercent" name="bulkMarkupType" value="percent" class="text-blue-600 focus:ring-blue-500" checked>
+                                            <label for="bulkMarkupPercent" class="text-sm text-gray-700">Percentage markup:</label>
+                                            <input type="number" id="bulkMarkupPercentValue" placeholder="%" step="0.1" min="0" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500">
+                                            <span class="text-sm text-gray-500">%</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="radio" id="bulkMarkupFixed" name="bulkMarkupType" value="fixed" class="text-blue-600 focus:ring-blue-500">
+                                            <label for="bulkMarkupFixed" class="text-sm text-gray-700">Fixed amount:</label>
+                                            <input type="number" id="bulkMarkupFixedValue" placeholder="0.00" step="0.01" min="0" class="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-3">
+                                    <button id="cancelBulkMarkup" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button id="applyBulkMarkup" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                                        Apply Markup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
             
-            let markupValue;
-            let markupTypeStr;
-            
-            if (markupChoice) {
-                // Percentage markup
-                const input = prompt('Enter markup percentage (e.g., 25 for 25%):');
-                if (input === null) return; // User cancelled
-                
-                markupValue = parseFloat(input);
-                markupTypeStr = 'percent';
-                
-                if (isNaN(markupValue) || markupValue < 0) {
-                    alert('Invalid percentage. Please enter a positive number.');
-                    return;
-                }
-            } else {
-                // Fixed amount markup
-                const input = prompt('Enter fixed markup amount (e.g., 100 for $100):');
-                if (input === null) return; // User cancelled
-                
-                markupValue = parseFloat(input);
-                markupTypeStr = 'fixed';
-                
-                if (isNaN(markupValue) || markupValue < 0) {
-                    alert('Invalid amount. Please enter a positive number.');
-                    return;
-                }
+            // Remove existing modal if present
+            const existingModal = document.getElementById('bulkMarkupModal');
+            if (existingModal) {
+                existingModal.remove();
             }
+            
+            // Add modal to DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Add event listeners
+            document.getElementById('closeBulkMarkupModal').addEventListener('click', () => {
+                document.getElementById('bulkMarkupModal').remove();
+            });
+            
+            document.getElementById('cancelBulkMarkup').addEventListener('click', () => {
+                document.getElementById('bulkMarkupModal').remove();
+            });
+            
+            // Radio button handlers
+            document.querySelectorAll('input[name="bulkMarkupType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const markupType = e.target.value;
+                    const percentInput = document.getElementById('bulkMarkupPercentValue');
+                    const fixedInput = document.getElementById('bulkMarkupFixedValue');
+                    
+                    if (markupType === 'percent') {
+                        percentInput.disabled = false;
+                        fixedInput.disabled = true;
+                        fixedInput.value = '';
+                    } else {
+                        fixedInput.disabled = false;
+                        percentInput.disabled = true;
+                        percentInput.value = '';
+                    }
+                });
+            });
+            
+            document.getElementById('applyBulkMarkup').addEventListener('click', () => {
+                const markupType = document.querySelector('input[name="bulkMarkupType"]:checked').value;
+                let markupValue = 0;
+                
+                if (markupType === 'percent') {
+                    markupValue = parseFloat(document.getElementById('bulkMarkupPercentValue').value) || 0;
+                } else {
+                    markupValue = parseFloat(document.getElementById('bulkMarkupFixedValue').value) || 0;
+                }
+                
+                if (markupValue <= 0) {
+                    showNotification('Please enter a valid markup value greater than 0.', 'warning');
+                    return;
+                }
+                
+                processBulkMarkup(selectedIds, markupType, markupValue);
+                document.getElementById('bulkMarkupModal').remove();
+            });
+        }
+
+        function processBulkMarkup(selectedIds, markupTypeStr, markupValue) {
             
             console.log('Applying markup:', markupTypeStr, markupValue);
             
@@ -1173,7 +1330,7 @@
             console.log('Successfully updated', updatedCount, 'out of', selectedIds.length, 'selected items');
             
             if (updatedCount === 0) {
-                alert('❌ No items were updated. This might be due to ID matching issues. Please try selecting items again.');
+                showNotification('❌ No items were updated. This might be due to ID matching issues. Please try selecting items again.', 'error');
                 return;
             }
             
@@ -1194,7 +1351,7 @@
             autoSave();
             
             const markupDescription = markupTypeStr === 'percent' ? `${markupValue}%` : `$${markupValue}`;
-            alert(`✅ Applied ${markupDescription} markup to ${updatedCount} item(s)!\n\nAll selections have been cleared.`);
+            showNotification(`✅ Applied ${markupDescription} markup to ${updatedCount} item(s)! All selections have been cleared.`, 'success');
         }
 
         // Markup calculation functions
@@ -3665,135 +3822,249 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 showModal('importModal');
             });
 
-            // Export functionality with proper error handling
+            // Robust export functionality with proper file generation
             function exportCustomersToExcel() {
                 try {
-                    console.log('Starting customer export...');
+                    console.log('🚀 Starting customer export...');
                     
-                    // Check if XLSX library is available with timeout
-                    let attempts = 0;
-                    const maxAttempts = 5;
+                    if (customers.length === 0) {
+                        showNotification('No customers to export.', 'warning');
+                        return;
+                    }
                     
-                    const checkAndExport = () => {
-                        attempts++;
-                        
-                        if (window.XLSX && window.XLSX.utils && window.XLSX.writeFile) {
-                            // Library is loaded, proceed with export
-                            if (customers.length === 0) {
-                                alert('No customers to export.');
-                                return;
-                            }
-                            
-                            console.log(`Exporting ${customers.length} customers...`);
-                            
-                            const exportData = customers.map(c => ({
-                                name: c.name || '',
-                                contact: c.contact || '',
-                                email: c.email || '',
-                                phone: c.phone || '',
-                                address: c.address || '',
-                                city: c.city || '',
-                                state: c.state || '',
-                                zipCode: c.zipCode || '',
-                                country: c.country || ''
-                            }));
-                            
-                            console.log('Customer export data prepared:', exportData.length, 'records');
-                            
-                            const ws = XLSX.utils.json_to_sheet(exportData);
-                            const wb = XLSX.utils.book_new();
-                            XLSX.utils.book_append_sheet(wb, ws, "Customers");
-                            
-                            const filename = `customers_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
-                            console.log('Writing file:', filename);
-                            
-                            XLSX.writeFile(wb, filename);
-                            
-                            console.log('Customer export completed successfully');
-                            alert(`✅ Successfully exported ${customers.length} customers to ${filename}!`);
-                            return;
-                        }
-                        
-                        if (attempts >= maxAttempts) {
-                            console.error('XLSX library failed to load after multiple attempts');
-                            alert('❌ Excel export library not available. Please refresh the page and try again.');
-                            return;
-                        }
-                        
-                        // Wait and try again
-                        setTimeout(checkAndExport, 500);
-                    };
+                    // Check XLSX library availability
+                    if (!window.XLSX || !window.XLSX.utils) {
+                        console.error('❌ XLSX library not available');
+                        showNotification('❌ Excel library not loaded. Please refresh the page and try again.', 'error');
+                        return;
+                    }
                     
-                    checkAndExport();
+                    console.log(`📊 Preparing to export ${customers.length} customers...`);
+                    
+                    const exportData = customers.map(c => ({
+                        name: c.name || '',
+                        contact: c.contact || '',
+                        email: c.email || '',
+                        phone: c.phone || '',
+                        address: c.address || '',
+                        city: c.city || '',
+                        state: c.state || '',
+                        zipCode: c.zipCode || '',
+                        country: c.country || ''
+                    }));
+                    
+                    console.log('✅ Customer export data prepared:', exportData.length, 'records');
+                    
+                    const filename = `customers_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    console.log('📁 Generating file:', filename);
+                    
+                    // Use the robust download function
+                    downloadExcelFile(exportData, filename, 'customers', customers.length);
                     
                 } catch (error) {
-                    console.error('Customer export error:', error);
-                    alert(`❌ Failed to export customers: ${error.message}`);
+                    console.error('💥 Customer export error:', error);
+                    showNotification(`❌ Failed to export customers: ${error.message}`, 'error');
                 }
             }
 
             function exportItemsToExcel() {
                 try {
-                    console.log('Starting items export...');
+                    console.log('🚀 Starting items export...');
                     
-                    // Check if XLSX library is available with timeout
-                    let attempts = 0;
-                    const maxAttempts = 5;
+                    if (items.length === 0) {
+                        showNotification('No items to export.', 'warning');
+                        return;
+                    }
                     
-                    const checkAndExport = () => {
-                        attempts++;
-                        
-                        if (window.XLSX && window.XLSX.utils && window.XLSX.writeFile) {
-                            // Library is loaded, proceed with export
-                            if (items.length === 0) {
-                                alert('No items to export.');
-                                return;
-                            }
-                            
-                            console.log(`Exporting ${items.length} items...`);
-                            
-                            const exportData = items.map(i => ({
-                                name: i.name || '',
-                                category: i.category || 'Uncategorized',
-                                description: i.description || '',
-                                basePrice: i.basePrice || i.price || 0,
-                                markupType: i.markupType || 'none',
-                                markupValue: i.markupValue || 0,
-                                finalPrice: i.price || 0
-                            }));
-                            
-                            console.log('Items export data prepared:', exportData.length, 'records');
-                            
-                            const ws = XLSX.utils.json_to_sheet(exportData);
-                            const wb = XLSX.utils.book_new();
-                            XLSX.utils.book_append_sheet(wb, ws, "Items");
-                            
-                            const filename = `items_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
-                            console.log('Writing file:', filename);
-                            
-                            XLSX.writeFile(wb, filename);
-                            
-                            console.log('Items export completed successfully');
-                            alert(`✅ Successfully exported ${items.length} items to ${filename}!`);
-                            return;
-                        }
-                        
-                        if (attempts >= maxAttempts) {
-                            console.error('XLSX library failed to load after multiple attempts');
-                            alert('❌ Excel export library not available. Please refresh the page and try again.');
-                            return;
-                        }
-                        
-                        // Wait and try again
-                        setTimeout(checkAndExport, 500);
-                    };
+                    // Check XLSX library availability
+                    if (!window.XLSX || !window.XLSX.utils) {
+                        console.error('❌ XLSX library not available');
+                        showNotification('❌ Excel library not loaded. Please refresh the page and try again.', 'error');
+                        return;
+                    }
                     
-                    checkAndExport();
+                    console.log(`📊 Preparing to export ${items.length} items...`);
+                    
+                    const exportData = items.map(i => ({
+                        name: i.name || '',
+                        category: i.category || 'Uncategorized',
+                        description: i.description || '',
+                        basePrice: i.basePrice || i.price || 0,
+                        markupType: i.markupType || 'none',
+                        markupValue: i.markupValue || 0,
+                        finalPrice: i.price || 0
+                    }));
+                    
+                    console.log('✅ Items export data prepared:', exportData.length, 'records');
+                    
+                    const filename = `items_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    console.log('📁 Generating file:', filename);
+                    
+                    // Use the robust download function
+                    downloadExcelFile(exportData, filename, 'items', items.length);
                     
                 } catch (error) {
-                    console.error('Items export error:', error);
-                    alert(`❌ Failed to export items: ${error.message}`);
+                    console.error('💥 Items export error:', error);
+                    showNotification(`❌ Failed to export items: ${error.message}`, 'error');
                 }
+            }
+
+            // Robust Excel file download function with forced download
+            function downloadExcelFile(data, filename, dataType, recordCount) {
+                console.log('🔄 Starting FORCED Excel file generation...');
+                
+                try {
+                    // Create worksheet from JSON data
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    
+                    // Create workbook and add worksheet
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, dataType.charAt(0).toUpperCase() + dataType.slice(1));
+                    
+                    console.log('📋 Workbook created successfully');
+                    
+                    // FORCE METHOD: Always use blob creation for maximum compatibility
+                    console.log('📥 FORCED METHOD: Creating blob with manual download...');
+                    
+                    // Generate binary data with maximum compatibility settings
+                    const wbout = XLSX.write(wb, {
+                        bookType: 'xlsx',
+                        type: 'array',
+                        compression: false // Disable compression for better compatibility
+                    });
+                    
+                    console.log('📦 Binary data generated, size:', wbout.length, 'bytes');
+                    
+                    // Create blob with explicit MIME type
+                    const blob = new Blob([wbout], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'
+                    });
+                    
+                    console.log('📦 Blob created successfully, size:', blob.size, 'bytes');
+                    
+                    // Create object URL
+                    const url = (window.URL || window.webkitURL).createObjectURL(blob);
+                    console.log('🔗 Object URL created:', url.substring(0, 50) + '...');
+                    
+                    // Create download link with all attributes
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = url;
+                    downloadLink.download = filename;
+                    downloadLink.type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                    downloadLink.style.display = 'none';
+                    downloadLink.target = '_blank';
+                    
+                    // Add to DOM
+                    document.body.appendChild(downloadLink);
+                    console.log('🔗 Download link added to DOM');
+                    
+                    // Force click with multiple methods
+                    console.log('🖱️ Attempting FORCED click...');
+                    
+                    // Method 1: Direct click
+                    downloadLink.click();
+                    console.log('✅ Direct click executed');
+                    
+                    // Method 2: Programmatic event (backup)
+                    setTimeout(() => {
+                        const clickEvent = new MouseEvent('click', {
+                            view: window,
+                            bubbles: true,
+                            cancelable: true,
+                            button: 0
+                        });
+                        downloadLink.dispatchEvent(clickEvent);
+                        console.log('✅ Event-based click executed');
+                    }, 100);
+                    
+                    // Method 3: Focus and click (backup)
+                    setTimeout(() => {
+                        downloadLink.focus();
+                        downloadLink.click();
+                        console.log('✅ Focus-based click executed');
+                    }, 200);
+                    
+                    // Show immediate success message
+                    showNotification(`✅ Generating ${filename}... Check your Downloads folder!`, 'success');
+                    
+                    // Cleanup after delay
+                    setTimeout(() => {
+                        try {
+                            if (document.body.contains(downloadLink)) {
+                                document.body.removeChild(downloadLink);
+                            }
+                            (window.URL || window.webkitURL).revokeObjectURL(url);
+                            console.log('🧹 Cleanup completed');
+                            
+                            // Final success message
+                            showNotification(`✅ ${filename} should now be in your Downloads folder! (${recordCount} ${dataType} exported)`, 'success');
+                            
+                        } catch (cleanupError) {
+                            console.warn('⚠️ Cleanup warning:', cleanupError.message);
+                        }
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('💥 Excel generation failed:', error);
+                    showNotification(`❌ Failed to generate Excel file: ${error.message}`, 'error');
+                    
+                    // Fallback: Try simple CSV export
+                    console.log('🔄 Attempting CSV fallback...');
+                    try {
+                        exportAsCSV(data, filename.replace('.xlsx', '.csv'), dataType, recordCount);
+                    } catch (csvError) {
+                        console.error('💥 CSV fallback also failed:', csvError);
+                        showNotification(`❌ Both Excel and CSV export failed. Please try refreshing the page.`, 'error');
+                    }
+                }
+            }
+            
+            // CSV fallback function
+            function exportAsCSV(data, filename, dataType, recordCount) {
+                console.log('📄 Creating CSV fallback...');
+                
+                if (data.length === 0) {
+                    showNotification('No data to export', 'warning');
+                    return;
+                }
+                
+                // Get headers from first object
+                const headers = Object.keys(data[0]);
+                
+                // Create CSV content
+                let csvContent = headers.join(',') + '\n';
+                
+                data.forEach(row => {
+                    const values = headers.map(header => {
+                        const value = row[header] || '';
+                        // Escape commas and quotes
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                            return '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    });
+                    csvContent += values.join(',') + '\n';
+                });
+                
+                // Create blob and download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+                const url = (window.URL || window.webkitURL).createObjectURL(blob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = filename;
+                downloadLink.style.display = 'none';
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                setTimeout(() => {
+                    (window.URL || window.webkitURL).revokeObjectURL(url);
+                }, 1000);
+                
+                console.log('✅ CSV export completed');
+                showNotification(`✅ Exported as CSV: ${filename} (${recordCount} ${dataType})`, 'success');
             }
 
             // Add event listeners with proper error handling
@@ -3830,13 +4101,13 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
 
                 // Check if XLSX library is loaded
                 if (!window.XLSX) {
-                    alert('Excel library not loaded. Please refresh the page and try again.');
+                    showNotification('Excel library not loaded. Please refresh the page and try again.', 'error');
                     return;
                 }
 
                 parseExcelFile(file, (error, data) => {
                     if (error) {
-                        alert('Error reading file: ' + error.message);
+                        showNotification('Error reading file: ' + error.message, 'error');
                         return;
                     }
 
@@ -3856,7 +4127,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 const validRows = data.filter(row => row.name && row.contact && row.email);
                 
                 if (validRows.length === 0) {
-                    alert('No valid customer data found. Please check that your file has the required columns: name, contact, email');
+                    showNotification('No valid customer data found. Please check that your file has the required columns: name, contact, email', 'error');
                     return;
                 }
 
@@ -3889,7 +4160,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 const validRows = data.filter(row => row.name && row.description && row.price);
                 
                 if (validRows.length === 0) {
-                    alert('No valid item data found. Please check that your file has the required columns: name, description, price');
+                    showNotification('No valid item data found. Please check that your file has the required columns: name, description, price', 'error');
                     return;
                 }
 
@@ -3925,7 +4196,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 if (choice) {
                     // Skip duplicates, only import new customers
                     importNewCustomers(newCustomers);
-                    alert(`Imported ${newCustomers.length} new customers. Skipped ${duplicates.length} duplicates.`);
+                    showNotification(`Imported ${newCustomers.length} new customers. Skipped ${duplicates.length} duplicates.`, 'success');
                 } else {
                     // Replace duplicates
                     duplicates.forEach(({ row, existing }) => {
@@ -3949,7 +4220,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     importNewCustomers(newCustomers);
                     renderCustomers();
                     autoSave();
-                    alert(`Imported ${newCustomers.length} new customers and replaced ${duplicates.length} existing customers.`);
+                    showNotification(`Imported ${newCustomers.length} new customers and replaced ${duplicates.length} existing customers.`, 'success');
                 }
             }
 
@@ -3960,7 +4231,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 if (choice) {
                     // Skip duplicates, only import new items
                     importNewItems(newItems);
-                    alert(`Imported ${newItems.length} new items. Skipped ${duplicates.length} duplicates.`);
+                    showNotification(`Imported ${newItems.length} new items. Skipped ${duplicates.length} duplicates.`, 'success');
                 } else {
                     // Replace duplicates
                     duplicates.forEach(({ row, existing }) => {
@@ -3983,7 +4254,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                     importNewItems(newItems);
                     renderItems();
                     autoSave();
-                    alert(`Imported ${newItems.length} new items and replaced ${duplicates.length} existing items.`);
+                    showNotification(`Imported ${newItems.length} new items and replaced ${duplicates.length} existing items.`, 'success');
                 }
             }
 
@@ -4007,7 +4278,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 autoSave();
                 
                 if (newCustomers.length > 0) {
-                    alert(`Successfully imported ${newCustomers.length} new customers.`);
+                    showNotification(`Successfully imported ${newCustomers.length} new customers.`, 'success');
                 }
             }
 
@@ -4030,7 +4301,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 autoSave();
                 
                 if (newItems.length > 0) {
-                    alert(`Successfully imported ${newItems.length} new items.`);
+                    showNotification(`Successfully imported ${newItems.length} new items.`, 'success');
                 }
             }
 
@@ -4232,14 +4503,14 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
                 companyInfo.email = document.getElementById('companyEmail').value.trim();
                 companyInfo.website = document.getElementById('companyWebsite').value.trim();
                 autoSave();
-                alert('Company information saved successfully!');
+                showNotification('Company information saved successfully!', 'success');
             });
 
             document.getElementById('saveQuoteSettings').addEventListener('click', () => {
                 quoteSettings.hideLineItemPricing = document.getElementById('hideLineItemPricing').checked;
                 quoteSettings.defaultTerms = document.getElementById('defaultTerms').value.trim();
                 autoSave();
-                alert('Quote settings saved successfully!');
+                showNotification('Quote settings saved successfully!', 'success');
             });
 
             // Bulk selection event listeners
@@ -4375,5 +4646,5 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
             setInterval(autoSave, 30000); // Save every 30 seconds
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97da71b4b06f13ca',t:'MTc1NzYyODA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97dab1cec25d3dd7',t:'MTc1NzYzMDcxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
