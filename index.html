@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quote-it - Professional Quote Generator</title>
     
     <!-- PWA Meta Tags -->
@@ -22,34 +22,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="console.warn('XLSX failed to load')"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        body { 
-            font-family: 'Inter', sans-serif; 
-            transition: all 0.3s ease;
-            overflow-x: hidden;
-            position: relative;
-            min-height: 100vh;
-            zoom: 1 !important;
-            transform: scale(1) !important;
-        }
-        
-        /* Prevent zoom and maintain viewport */
-        html {
-            zoom: 1 !important;
-            transform: scale(1) !important;
-            overflow-x: hidden;
-        }
-        
-        /* Ensure main content always fits viewport */
-        #mainContent {
-            width: 100vw;
-            max-width: 100vw;
-            overflow-x: hidden;
-            position: relative;
-            zoom: 1 !important;
-            transform: scale(1) !important;
-        }
-        
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .slide-up { animation: slideUp 0.3s ease-out; }
@@ -1745,7 +1718,7 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
             showModal('quotePreviewModal');
         }
 
-        // Navigation functionality with Viewport Reset
+        // Navigation functionality
         function showTab(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1769,74 +1742,15 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                 activeBtn.classList.add('active', 'bg-blue-500', 'text-white');
                 activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
             }
-            
-            // Reset viewport after tab change
-            setTimeout(() => {
-                resetViewport();
-                forceViewportReset();
-            }, 50);
         }
 
-        // Modal Management with Viewport Reset
+        // Modal Management
         function showModal(modalId) {
             document.getElementById(modalId).classList.remove('hidden');
-            // Prevent body scroll when modal is open
-            document.body.style.overflow = 'hidden';
-            resetViewport();
         }
 
         function hideModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
-            // Restore body scroll when modal is closed
-            document.body.style.overflow = 'auto';
-            // Force viewport reset after modal closes
-            setTimeout(() => {
-                resetViewport();
-                forceViewportReset();
-            }, 100);
-        }
-
-        // Viewport Reset Functions
-        function resetViewport() {
-            // Reset zoom and scale
-            document.documentElement.style.zoom = '1';
-            document.body.style.zoom = '1';
-            document.documentElement.style.transform = 'scale(1)';
-            document.body.style.transform = 'scale(1)';
-            
-            // Reset viewport meta tag
-            let viewport = document.querySelector('meta[name="viewport"]');
-            if (viewport) {
-                viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-            }
-            
-            // Ensure main content fits
-            const mainContent = document.getElementById('mainContent');
-            if (mainContent) {
-                mainContent.style.width = '100vw';
-                mainContent.style.maxWidth = '100vw';
-                mainContent.style.overflow = 'visible';
-                mainContent.style.zoom = '1';
-                mainContent.style.transform = 'scale(1)';
-            }
-        }
-
-        function forceViewportReset() {
-            // Force browser to recalculate viewport
-            window.scrollTo(0, 0);
-            
-            // Trigger resize event to force recalculation
-            window.dispatchEvent(new Event('resize'));
-            
-            // Additional reset for mobile browsers
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                setTimeout(() => {
-                    window.scrollTo(0, 1);
-                    setTimeout(() => {
-                        window.scrollTo(0, 0);
-                    }, 50);
-                }, 100);
-            }
         }
 
         // Quote modal functions
@@ -1870,4 +1784,2867 @@ ${companyInfo.website ? `Website: ${companyInfo.website}` : ''}`);
                             <div class="flex-1">
                                 <h5 class="font-medium text-gray-800">${item.name}</h5>
                                 <p class="text-sm text-gray-600">${item.description}</p>
-                                <p class<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e1acc265c4a516',t:'MTc1NzcwMzkxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                                <p class="text-sm font-semibold text-green-600">$${item.price.toLocaleString()}</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" min="1" value="${item.quantity}" 
+                                       class="w-16 px-2 py-1 border border-gray-300 rounded text-sm quantity-input" 
+                                       data-index="${index}">
+                                <button class="remove-item-btn text-red-500 hover:bg-red-50 p-1 rounded" data-index="${index}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <textarea placeholder="Add custom text for this item..." 
+                                      class="w-full px-2 py-1 border border-gray-300 rounded text-sm custom-text-input h-16 resize-none" 
+                                      data-index="${index}">${item.customText || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add event listeners for quantity changes, custom text, and item removal
+            container.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    const quantity = parseInt(e.target.value) || 1;
+                    selectedQuoteItems[index].quantity = Math.max(1, quantity);
+                    updateQuoteTotal();
+                });
+            });
+
+            container.querySelectorAll('.custom-text-input').forEach(textarea => {
+                textarea.addEventListener('input', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    selectedQuoteItems[index].customText = e.target.value;
+                });
+            });
+
+            container.querySelectorAll('.remove-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.remove-item-btn').dataset.index);
+                    selectedQuoteItems.splice(index, 1);
+                    updateSelectedItems();
+                    updateQuoteTotal();
+                });
+            });
+        }
+
+        function updateQuoteTotal() {
+            const total = selectedQuoteItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('quoteTotal').textContent = `$${total.toLocaleString()}`;
+        }
+
+        function saveQuote(status) {
+            const customerId = document.getElementById('quoteCustomer').value;
+            const title = document.getElementById('quoteTitle').value.trim();
+            const notes = document.getElementById('quoteNotes').value.trim();
+            
+            if (!customerId || !title || selectedQuoteItems.length === 0) {
+                alert('Please fill in all required fields and add at least one item.');
+                return;
+            }
+
+            const customer = customers.find(c => c.id == customerId);
+            const total = selectedQuoteItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const quote = {
+                id: editingQuoteId || Date.now(),
+                title,
+                customer: customer.name,
+                customerInfo: customer,
+                total,
+                status,
+                date: new Date().toISOString().split('T')[0],
+                sentDate: status === 'Sent' ? new Date().toISOString().split('T')[0] : null,
+                items: [...selectedQuoteItems],
+                notes,
+                followUpDate: null,
+                lastFollowUp: null
+            };
+
+            if (editingQuoteId) {
+                const index = quotes.findIndex(q => q.id === editingQuoteId);
+                if (index !== -1) {
+                    const existingQuote = quotes[index];
+                    // Preserve existing dates when editing
+                    quote.sentDate = existingQuote.sentDate || (status === 'Sent' ? new Date().toISOString().split('T')[0] : null);
+                    quote.followUpDate = existingQuote.followUpDate;
+                    quote.lastFollowUp = existingQuote.lastFollowUp;
+                    quotes[index] = quote;
+                }
+            } else {
+                quotes.push(quote);
+            }
+
+            renderQuotes();
+            renderDashboard();
+            autoSave();
+            hideModal('quoteModal');
+            
+            if (status === 'Sent') {
+                // Open email client with quote details
+                openEmailForQuote(quote);
+                alert('Quote saved and email client opened!');
+            } else {
+                alert('Quote saved successfully!');
+            }
+        }
+
+        function generateAndDownloadPDF(filename = null) {
+            return new Promise((resolve, reject) => {
+                const element = document.getElementById('quotePreviewContent');
+                if (!element) {
+                    reject(new Error('Quote preview content not found. Please open the quote preview first.'));
+                    return;
+                }
+
+                // Check if libraries are loaded with timeout
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                const checkLibraries = () => {
+                    attempts++;
+                    
+                    if (window.jspdf && window.jspdf.jsPDF && window.html2canvas) {
+                        // Libraries are loaded, proceed
+                        generatePDFContent(element, filename, resolve, reject);
+                        return;
+                    }
+                    
+                    if (attempts >= maxAttempts) {
+                        reject(new Error('PDF libraries failed to load after multiple attempts. Please refresh the page and try again.'));
+                        return;
+                    }
+                    
+                    // Wait and try again
+                    setTimeout(checkLibraries, 500);
+                };
+                
+                checkLibraries();
+            });
+        }
+
+        function generatePDFContent(element, filename, resolve, reject) {
+            try {
+                console.log('Starting MOBILE-COMPATIBLE PDF generation...');
+
+                // Detect mobile device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const isSmallScreen = window.innerWidth <= 768;
+                
+                console.log('Device detection:', { isMobile, isSmallScreen, userAgent: navigator.userAgent });
+
+                // Create a mobile-optimized container for PDF generation
+                const tempContainer = document.createElement('div');
+                
+                // Mobile-optimized styling
+                const containerWidth = isMobile || isSmallScreen ? '800px' : '1200px';
+                const containerPadding = isMobile || isSmallScreen ? '40px' : '60px';
+                const baseFontSize = isMobile || isSmallScreen ? '14px' : '16px';
+                
+                tempContainer.style.cssText = `
+                    position: fixed;
+                    left: -9999px;
+                    top: 0;
+                    width: ${containerWidth};
+                    background-color: #ffffff !important;
+                    padding: ${containerPadding};
+                    font-family: Arial, Helvetica, sans-serif;
+                    color: #000000 !important;
+                    line-height: 1.5;
+                    font-size: ${baseFontSize};
+                    z-index: -1000;
+                    overflow: hidden;
+                    box-sizing: border-box;
+                `;
+                
+                // Clone the content and optimize for mobile PDF generation
+                const clonedContent = element.cloneNode(true);
+                
+                // Mobile-optimized styling for all elements
+                const allElements = clonedContent.querySelectorAll('*');
+                allElements.forEach(el => {
+                    // Force white background and black text for mobile compatibility
+                    el.style.backgroundColor = el.classList.contains('bg-blue-50') || el.classList.contains('bg-gray-50') || el.classList.contains('bg-gray-100') ? '#f8f9fa !important' : 
+                                             el.style.backgroundColor || 'transparent';
+                    
+                    // Ensure text is always black for mobile PDF viewers
+                    if (el.classList.contains('text-blue-600') || el.classList.contains('text-blue-700')) {
+                        el.style.color = '#0066cc !important';
+                    } else if (el.classList.contains('text-green-600') || el.classList.contains('text-green-700')) {
+                        el.style.color = '#006600 !important';
+                    } else if (el.classList.contains('text-gray-900') || el.classList.contains('text-gray-800')) {
+                        el.style.color = '#000000 !important';
+                    } else if (el.classList.contains('text-gray-600')) {
+                        el.style.color = '#333333 !important';
+                    } else if (el.classList.contains('text-gray-500')) {
+                        el.style.color = '#666666 !important';
+                    } else {
+                        el.style.color = '#000000 !important';
+                    }
+                    
+                    // Mobile-optimized table styling
+                    if (el.tagName === 'TABLE') {
+                        el.style.border = '2px solid #000000 !important';
+                        el.style.borderCollapse = 'collapse !important';
+                        el.style.width = '100% !important';
+                        el.style.backgroundColor = '#ffffff !important';
+                    } else if (el.tagName === 'TD' || el.tagName === 'TH') {
+                        el.style.border = '1px solid #333333 !important';
+                        el.style.padding = '8px 12px !important';
+                        el.style.fontSize = '12px !important';
+                        el.style.color = '#000000 !important';
+                        el.style.backgroundColor = el.tagName === 'TH' ? '#f0f0f0 !important' : '#ffffff !important';
+                    }
+                    
+                    // Mobile-friendly font sizes
+                    const currentFontSize = window.getComputedStyle(el).fontSize;
+                    if (currentFontSize && currentFontSize !== 'inherit') {
+                        const size = parseFloat(currentFontSize);
+                        if (size < 12) {
+                            el.style.fontSize = '12px !important';
+                        } else if (size > 32) {
+                            el.style.fontSize = '32px !important';
+                        } else {
+                            el.style.fontSize = Math.max(12, Math.ceil(size)) + 'px !important';
+                        }
+                    }
+                    
+                    // MOBILE-OPTIMIZED IMAGE HANDLING
+                    if (el.tagName === 'IMG') {
+                        el.style.maxWidth = '150px !important';
+                        el.style.maxHeight = '100px !important';
+                        el.style.objectFit = 'contain !important';
+                        el.style.display = 'block !important';
+                        el.style.visibility = 'visible !important';
+                        el.style.opacity = '1 !important';
+                        
+                        // Ensure image loads properly on mobile
+                        if (el.src && el.src.startsWith('data:')) {
+                            console.log('Mobile: Preserving data URL image');
+                        } else if (el.src && el.src.startsWith('http')) {
+                            el.crossOrigin = 'anonymous';
+                        }
+                    }
+                    
+                    // MOBILE-OPTIMIZED SVG HANDLING
+                    if (el.tagName === 'SVG') {
+                        el.style.maxWidth = '150px !important';
+                        el.style.maxHeight = '100px !important';
+                        el.style.display = 'block !important';
+                        el.style.visibility = 'visible !important';
+                    }
+                    
+                    // Remove all problematic styles for mobile
+                    el.style.boxShadow = 'none !important';
+                    el.style.textShadow = 'none !important';
+                    el.style.filter = 'none !important';
+                    el.style.transform = 'none !important';
+                    el.style.animation = 'none !important';
+                    el.style.transition = 'none !important';
+                    el.style.borderRadius = el.style.borderRadius ? Math.min(8, parseFloat(el.style.borderRadius) || 0) + 'px !important' : '';
+                    
+                    // Ensure proper rendering on mobile
+                    el.style.webkitFontSmoothing = 'antialiased !important';
+                    el.style.mozOsxFontSmoothing = 'grayscale !important';
+                    el.style.textRendering = 'optimizeLegibility !important';
+                });
+                
+                tempContainer.appendChild(clonedContent);
+                document.body.appendChild(tempContainer);
+
+                console.log('Mobile-optimized container created...');
+
+                // Mobile-optimized rendering timeout
+                const renderTimeout = isMobile ? 3500 : 2500;
+                
+                setTimeout(() => {
+                    console.log('Starting mobile-compatible html2canvas capture...');
+                    
+                    // Mobile-optimized html2canvas options
+                    const scale = isMobile || isSmallScreen ? 2 : 3; // Lower scale for mobile to prevent memory issues
+                    
+                    const options = {
+                        scale: scale,
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor: '#ffffff',
+                        width: tempContainer.scrollWidth,
+                        height: tempContainer.scrollHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        logging: false,
+                        removeContainer: false,
+                        imageTimeout: 8000,
+                        letterRendering: true,
+                        foreignObjectRendering: false, // Disable for mobile compatibility
+                        onclone: function(clonedDoc) {
+                            console.log('Mobile: Processing cloned document...');
+                            
+                            // Ensure all elements are visible and properly styled in clone
+                            const clonedElements = clonedDoc.querySelectorAll('*');
+                            clonedElements.forEach(el => {
+                                el.style.fontFamily = 'Arial, Helvetica, sans-serif !important';
+                                el.style.visibility = 'visible !important';
+                                el.style.opacity = '1 !important';
+                                el.style.display = el.style.display === 'none' ? 'block' : el.style.display;
+                                
+                                // Ensure images are visible in mobile clone
+                                if (el.tagName === 'IMG') {
+                                    el.style.display = 'block !important';
+                                    el.style.visibility = 'visible !important';
+                                    el.style.opacity = '1 !important';
+                                    el.style.maxWidth = '150px !important';
+                                    el.style.maxHeight = '100px !important';
+                                }
+                                
+                                // Ensure SVGs are visible in mobile clone
+                                if (el.tagName === 'SVG') {
+                                    el.style.display = 'block !important';
+                                    el.style.visibility = 'visible !important';
+                                    el.style.maxWidth = '150px !important';
+                                    el.style.maxHeight = '100px !important';
+                                }
+                            });
+                            
+                            // Mobile-optimized image loading
+                            const images = clonedDoc.querySelectorAll('img');
+                            const imagePromises = Array.from(images).map(img => {
+                                return new Promise((resolve) => {
+                                    if (img.complete && img.naturalWidth > 0) {
+                                        resolve();
+                                    } else {
+                                        img.onload = () => resolve();
+                                        img.onerror = () => resolve(); // Continue even if image fails
+                                        setTimeout(() => resolve(), 2000); // Shorter timeout for mobile
+                                    }
+                                });
+                            });
+                            
+                            Promise.all(imagePromises).then(() => {
+                                console.log('Mobile: All images processed in cloned document');
+                            });
+                        }
+                    };
+
+                    html2canvas(tempContainer, options).then(canvas => {
+                        console.log('Mobile: Canvas created successfully');
+                        
+                        try {
+                            // Clean up temporary container
+                            if (document.body.contains(tempContainer)) {
+                                document.body.removeChild(tempContainer);
+                            }
+
+                            // Mobile-optimized quality settings
+                            let quality = isMobile ? 0.85 : 0.95; // Lower initial quality for mobile
+                            let imgData = canvas.toDataURL('image/jpeg', quality);
+                            
+                            // Verify image data is valid
+                            if (!imgData || imgData === 'data:,' || imgData.length < 1000) {
+                                throw new Error('Failed to generate valid image data from content');
+                            }
+
+                            console.log('Mobile: Image data generated, size:', imgData.length);
+
+                            const { jsPDF } = window.jspdf;
+                            
+                            // Mobile-optimized size estimation
+                            function estimatePDFSize(imageDataUrl) {
+                                const base64Size = imageDataUrl.length * 0.75;
+                                return base64Size + 100000; // Smaller overhead for mobile
+                            }
+                            
+                            // Mobile-friendly size optimization
+                            const maxSize = 3 * 1024 * 1024; // 3MB limit
+                            let estimatedSize = estimatePDFSize(imgData);
+                            
+                            console.log(`Mobile: Initial size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                            
+                            // More aggressive quality reduction for mobile if needed
+                            const minQuality = isMobile ? 0.6 : 0.75;
+                            while (estimatedSize > maxSize && quality > minQuality) {
+                                quality -= 0.05; // Larger decrements for mobile
+                                imgData = canvas.toDataURL('image/jpeg', quality);
+                                estimatedSize = estimatePDFSize(imgData);
+                                console.log(`Mobile: Adjusted to ${(estimatedSize / 1024 / 1024).toFixed(2)}MB at ${quality * 100}% quality`);
+                            }
+                            
+                            // Mobile-optimized canvas resizing if still too large
+                            if (estimatedSize > maxSize) {
+                                console.log('Mobile: Resizing canvas to fit size limit...');
+                                const scaleFactor = Math.sqrt(maxSize / estimatedSize) * 0.9;
+                                const newWidth = Math.floor(canvas.width * scaleFactor);
+                                const newHeight = Math.floor(canvas.height * scaleFactor);
+                                
+                                const resizedCanvas = document.createElement('canvas');
+                                resizedCanvas.width = newWidth;
+                                resizedCanvas.height = newHeight;
+                                const ctx = resizedCanvas.getContext('2d');
+                                
+                                // Mobile-optimized scaling
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, newWidth, newHeight);
+                                ctx.drawImage(canvas, 0, 0, newWidth, newHeight);
+                                
+                                imgData = resizedCanvas.toDataURL('image/jpeg', Math.max(quality, 0.7));
+                                estimatedSize = estimatePDFSize(imgData);
+                                console.log(`Mobile: Resized to ${newWidth}x${newHeight}, size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`);
+                            }
+
+                            // Mobile-optimized PDF creation
+                            const pdf = new jsPDF({
+                                orientation: 'portrait',
+                                unit: 'mm',
+                                format: 'a4',
+                                compress: true, // Enable compression for mobile
+                                precision: 16 // Lower precision for mobile compatibility
+                            });
+                            
+                            const pdfWidth = pdf.internal.pageSize.getWidth();
+                            const pdfHeight = pdf.internal.pageSize.getHeight();
+                            
+                            // Mobile-friendly margins
+                            const margin = isMobile ? 10 : 12;
+                            const availableWidth = pdfWidth - (margin * 2);
+                            const availableHeight = pdfHeight - (margin * 2);
+                            
+                            // Calculate dimensions for mobile display
+                            const aspectRatio = canvas.height / canvas.width;
+                            let finalWidth = availableWidth;
+                            let finalHeight = finalWidth * aspectRatio;
+                            
+                            if (finalHeight > availableHeight) {
+                                finalHeight = availableHeight;
+                                finalWidth = finalHeight / aspectRatio;
+                            }
+                            
+                            // Center the content
+                            const imgX = (pdfWidth - finalWidth) / 2;
+                            const imgY = margin;
+
+                            console.log(`Mobile: Adding image to PDF: ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
+
+                            // Add image with mobile-optimized settings
+                            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'MEDIUM');
+                            
+                            // Check final PDF size
+                            const pdfBlob = pdf.output('blob');
+                            const actualSize = pdfBlob.size;
+                            console.log(`Mobile: Final PDF size: ${(actualSize / 1024 / 1024).toFixed(2)}MB`);
+                            
+                            // Generate mobile-friendly filename
+                            const finalFilename = filename || `Quote_Mobile_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-6)}.pdf`;
+                            
+                            console.log(`Mobile: Saving PDF as: ${finalFilename}`);
+                            
+                            // Mobile-optimized save method
+                            try {
+                                if (isMobile) {
+                                    // Use blob method for mobile devices
+                                    const url = URL.createObjectURL(pdfBlob);
+                                    const downloadLink = document.createElement('a');
+                                    downloadLink.href = url;
+                                    downloadLink.download = finalFilename;
+                                    downloadLink.style.display = 'none';
+                                    
+                                    document.body.appendChild(downloadLink);
+                                    downloadLink.click();
+                                    document.body.removeChild(downloadLink);
+                                    
+                                    setTimeout(() => URL.revokeObjectURL(url), 2000);
+                                    console.log('Mobile: PDF saved using blob method');
+                                } else {
+                                    pdf.save(finalFilename);
+                                    console.log('Desktop: PDF saved using direct method');
+                                }
+                            } catch (saveError) {
+                                console.warn('Save method failed, trying alternative:', saveError);
+                                
+                                // Fallback method
+                                const url = URL.createObjectURL(pdfBlob);
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = url;
+                                downloadLink.download = finalFilename;
+                                downloadLink.style.display = 'none';
+                                
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                                
+                                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                                console.log('Fallback: PDF saved using blob method');
+                            }
+                            
+                            resolve({ 
+                                pdf, 
+                                filename: finalFilename, 
+                                size: actualSize,
+                                sizeFormatted: `${(actualSize / 1024 / 1024).toFixed(2)}MB`,
+                                isMobile: isMobile
+                            });
+                            
+                        } catch (pdfError) {
+                            console.error('Mobile PDF generation error:', pdfError);
+                            if (document.body.contains(tempContainer)) {
+                                document.body.removeChild(tempContainer);
+                            }
+                            reject(new Error(`Mobile PDF creation failed: ${pdfError.message}`));
+                        }
+                    }).catch(canvasError => {
+                        console.error('Mobile canvas generation error:', canvasError);
+                        if (document.body.contains(tempContainer)) {
+                            document.body.removeChild(tempContainer);
+                        }
+                        reject(new Error(`Mobile image capture failed: ${canvasError.message}. This may be due to device limitations.`));
+                    });
+                }, renderTimeout);
+            } catch (error) {
+                console.error('Mobile PDF setup error:', error);
+                reject(new Error(`Mobile PDF generation failed: ${error.message}`));
+            }
+        }
+
+        function openEmailForQuote(quote) {
+            const customer = quote.customerInfo;
+            const total = quote.total;
+            const quoteNumber = quote.id.toString().slice(-6);
+            
+            // Create filename with customer name, title, and date
+            const customerName = customer.name.replace(/[^a-zA-Z0-9]/g, '_');
+            const titleName = quote.title.replace(/[^a-zA-Z0-9]/g, '_');
+            const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+            const pdfFilename = `${customerName}_${titleName}_${dateStr}.pdf`;
+            
+            // First generate the quote preview if not already visible
+            const customerId = quote.customerInfo.id;
+            const title = quote.title;
+            const notes = quote.notes || '';
+            const selectedItems = quote.items;
+            
+            // Generate preview content for PDF
+            generateQuotePreviewForEmail(quote);
+            
+            // Small delay to ensure content is rendered
+            setTimeout(() => {
+                // Generate PDF and then open email
+                generateAndDownloadPDF(pdfFilename).then((result) => {
+                    // Email subject
+                    const subject = encodeURIComponent(`Quote #${quoteNumber} - ${quote.title}`);
+                    
+                    // Email body with PDF attachment note
+                    const body = encodeURIComponent(`Dear ${customer.contact},
+
+Thank you for your interest in our services. Please find attached your quote for ${quote.title}.
+
+Quote Details:
+- Quote Number: #${quoteNumber}
+- Total Amount: $${total.toLocaleString()}
+- Valid Until: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+
+${quote.notes ? `Additional Notes:\n${quote.notes}\n\n` : ''}We look forward to working with you. Please don't hesitate to contact us if you have any questions.
+
+Best regards,
+${companyInfo.name}
+${companyInfo.phone ? `Phone: ${companyInfo.phone}` : ''}
+${companyInfo.email ? `Email: ${companyInfo.email}` : ''}
+${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
+
+✅ PDF DOWNLOADED: The quote PDF "${result.filename}" has been automatically downloaded to your Downloads folder. Please attach it to this email before sending.`);
+
+                    // Build mailto URL
+                    let mailtoUrl = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+                    
+                    // Add CC if company email is provided and different from customer email
+                    if (companyInfo.email && companyInfo.email !== customer.email) {
+                        mailtoUrl += `&cc=${encodeURIComponent(companyInfo.email)}`;
+                    }
+                    
+                    // Open email client
+                    window.location.href = mailtoUrl;
+                    
+                    // Show success message
+                    alert(`✅ PDF downloaded as "${result.filename}" and email opened!\n\nPlease attach the downloaded PDF to your email before sending.`);
+                }).catch(error => {
+                    console.error('PDF generation failed:', error);
+                    
+                    // Show detailed error message
+                    let errorMessage = 'Failed to generate PDF. ';
+                    if (error.message.includes('html2canvas')) {
+                        errorMessage += 'There was an issue capturing the quote content. ';
+                    } else if (error.message.includes('jsPDF')) {
+                        errorMessage += 'There was an issue creating the PDF file. ';
+                    }
+                    errorMessage += 'Please try again or use the Preview option to manually save the quote.';
+                    
+                    alert(errorMessage);
+                    
+                    // Fallback: open email without PDF
+                    const subject = encodeURIComponent(`Quote #${quoteNumber} - ${quote.title}`);
+                    const body = encodeURIComponent(`Dear ${customer.contact},
+
+Thank you for your interest in our services. Please find your quote details for ${quote.title}.
+
+Quote Details:
+- Quote Number: #${quoteNumber}
+- Total Amount: $${total.toLocaleString()}
+- Valid Until: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+
+${quote.notes ? `Additional Notes:\n${quote.notes}\n\n` : ''}We look forward to working with you. Please don't hesitate to contact us if you have any questions.
+
+Best regards,
+${companyInfo.name}
+${companyInfo.phone ? `Phone: ${companyInfo.phone}` : ''}
+${companyInfo.email ? `Email: ${companyInfo.email}` : ''}
+${companyInfo.website ? `Website: ${companyInfo.website}` : ''}
+
+⚠️ Note: PDF generation failed. Please use the quote preview to manually save or print the quote.`);
+
+                    let mailtoUrl = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+                    if (companyInfo.email && companyInfo.email !== customer.email) {
+                        mailtoUrl += `&cc=${encodeURIComponent(companyInfo.email)}`;
+                    }
+                    window.location.href = mailtoUrl;
+                });
+            }, 1500); // Increased delay to ensure content is fully rendered
+        }
+
+        function generateQuotePreviewForEmail(quote) {
+            const customer = quote.customerInfo;
+            const total = quote.total;
+            const hideLineItemPricing = quoteSettings.hideLineItemPricing;
+            
+            const logoHtml = companyInfo.logo ? 
+                `<img src="${companyInfo.logo}" alt="Company Logo" class="max-h-16 max-w-32 object-contain mb-4">` : 
+                `<div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="3" y="2" width="8" height="12" rx="1" fill="currentColor" opacity="0.8"/>
+                        <rect x="4" y="4" width="6" height="2" rx="0.5" fill="white"/>
+                        <circle cx="5" cy="8" r="0.5" fill="white"/>
+                        <circle cx="7" cy="8" r="0.5" fill="white"/>
+                        <circle cx="9" cy="8" r="0.5" fill="white"/>
+                        <circle cx="5" cy="10" r="0.5" fill="white"/>
+                        <circle cx="7" cy="10" r="0.5" fill="white"/>
+                        <circle cx="9" cy="10" r="0.5" fill="white"/>
+                        <circle cx="5" cy="12" r="0.5" fill="white"/>
+                        <circle cx="7" cy="12" r="0.5" fill="white"/>
+                        <circle cx="9" cy="12" r="0.5" fill="white"/>
+                        <path d="M13 3l7 7-10 10H7v-3L17 7l-4-4z" fill="currentColor" opacity="0.9"/>
+                        <path d="M13 3l2 2-10 10v-2L15 3h-2z" fill="white" opacity="0.7"/>
+                    </svg>
+                </div>`;
+
+            // Group items by category
+            const itemsByCategory = {};
+            quote.items.forEach(item => {
+                const category = item.category || 'Services';
+                if (!itemsByCategory[category]) {
+                    itemsByCategory[category] = [];
+                }
+                itemsByCategory[category].push(item);
+            });
+
+            const itemsHtml = Object.keys(itemsByCategory).sort().map(categoryName => {
+                const categoryItems = itemsByCategory[categoryName];
+                const categoryTotal = categoryItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                const categoryItemsHtml = categoryItems.map(item => {
+                    const itemTotal = item.price * item.quantity;
+                    return `
+                        <tr class="border-b border-gray-100">
+                            <td class="py-2 px-4 pl-6">
+                                <div class="font-medium text-gray-900">${item.name}</div>
+                                <div class="text-sm text-gray-600">${item.description}</div>
+                                ${item.customText ? `<div class="text-sm text-gray-700 mt-1 italic">${item.customText}</div>` : ''}
+                            </td>
+                            <td class="py-2 px-2 text-center">${item.quantity}</td>
+                            ${!hideLineItemPricing ? `
+                                <td class="py-2 px-2 text-right">$${item.price.toLocaleString()}</td>
+                                <td class="py-2 px-2 text-right font-medium">$${itemTotal.toLocaleString()}</td>
+                            ` : ''}
+                        </tr>
+                    `;
+                }).join('');
+
+                return `
+                    <tr class="bg-blue-50 border-b-2 border-blue-200">
+                        <td class="py-3 px-2 font-bold text-blue-900" colspan="${hideLineItemPricing ? '2' : '4'}">
+                            <div class="flex justify-between items-center">
+                                <span>${categoryName}</span>
+                                ${!hideLineItemPricing ? `<span class="text-blue-700">$${categoryTotal.toLocaleString()}</span>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                    ${categoryItemsHtml}
+                `;
+            }).join('');
+
+            const previewHtml = `
+                <div class="max-w-4xl mx-auto bg-white">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            ${logoHtml}
+                            <h1 class="text-2xl font-bold text-gray-900">${companyInfo.name}</h1>
+                            ${companyInfo.address ? `<p class="text-gray-600">${companyInfo.address.replace(/\n/g, '<br>')}</p>` : ''}
+                            ${companyInfo.phone ? `<p class="text-gray-600">${companyInfo.phone}</p>` : ''}
+                            ${companyInfo.email ? `<p class="text-gray-600">${companyInfo.email}</p>` : ''}
+                            ${companyInfo.website ? `<p class="text-gray-600">${companyInfo.website}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-3xl font-bold text-blue-600 mb-2">QUOTE</h2>
+                            <p class="text-gray-600">Date: ${new Date().toLocaleDateString()}</p>
+                            <p class="text-gray-600">Quote #: ${quote.id.toString().slice(-6)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Prepared For:</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium text-gray-900">${customer.name}</p>
+                            <p class="text-gray-600">${customer.contact}</p>
+                            <p class="text-gray-600">${customer.email}</p>
+                            <p class="text-gray-600">${customer.phone}</p>
+                            ${customer.address ? `<p class="text-gray-600 mt-2">${customer.address}</p>` : ''}
+                            ${customer.city || customer.state || customer.zipCode ? `<p class="text-gray-600">${customer.city ? customer.city : ''}${customer.city && customer.state ? ', ' : ''}${customer.state ? customer.state : ''}${customer.zipCode ? ' ' + customer.zipCode : ''}</p>` : ''}
+                            ${customer.country ? `<p class="text-gray-600">${customer.country}</p>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Quote Title -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-gray-900">${quote.title}</h3>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="mb-8">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-100 border-b-2 border-gray-300">
+                                    <th class="py-3 px-2 text-left font-semibold text-gray-900">Description</th>
+                                    <th class="py-3 px-2 text-center font-semibold text-gray-900">Qty</th>
+                                    ${!hideLineItemPricing ? `
+                                        <th class="py-3 px-2 text-right font-semibold text-gray-900">Unit Price</th>
+                                        <th class="py-3 px-2 text-right font-semibold text-gray-900">Total</th>
+                                    ` : ''}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="flex justify-end mb-8">
+                        <div class="w-64">
+                            <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
+                                    <span class="text-2xl font-bold text-blue-600">$${total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    ${quote.notes ? `
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Additional Notes:</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-700">${quote.notes.replace(/\n/g, '<br>')}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Terms -->
+                    ${quoteSettings.defaultTerms ? `
+                        <div class="border-t pt-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Terms & Conditions:</h3>
+                            <p class="text-sm text-gray-600">${quoteSettings.defaultTerms.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Create a temporary preview container if it doesn't exist
+            let previewContainer = document.getElementById('quotePreviewContent');
+            if (!previewContainer) {
+                previewContainer = document.createElement('div');
+                previewContainer.id = 'quotePreviewContent';
+                previewContainer.style.position = 'absolute';
+                previewContainer.style.left = '-9999px';
+                previewContainer.style.top = '-9999px';
+                previewContainer.style.width = '800px';
+                previewContainer.className = 'quote-preview bg-white p-8';
+                document.body.appendChild(previewContainer);
+            }
+            
+            previewContainer.innerHTML = previewHtml;
+        }
+
+        // Customer Management
+        function renderCustomers() {
+            const container = document.getElementById('customersList');
+            const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
+            
+            const filteredCustomers = customers.filter(customer => 
+                customer.name.toLowerCase().includes(searchTerm) ||
+                customer.contact.toLowerCase().includes(searchTerm) ||
+                customer.email.toLowerCase().includes(searchTerm) ||
+                (customer.address && customer.address.toLowerCase().includes(searchTerm)) ||
+                (customer.city && customer.city.toLowerCase().includes(searchTerm)) ||
+                (customer.state && customer.state.toLowerCase().includes(searchTerm)) ||
+                (customer.zipCode && customer.zipCode.toLowerCase().includes(searchTerm)) ||
+                (customer.country && customer.country.toLowerCase().includes(searchTerm))
+            );
+
+            container.innerHTML = filteredCustomers.map(customer => `
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" class="customer-checkbox mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-customer-id="${customer.id}">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${customer.name}</h4>
+                            <p class="text-sm text-gray-600">${customer.contact}</p>
+                            <p class="text-sm text-blue-600">${customer.email}</p>
+                            <p class="text-sm text-gray-500">${customer.phone}</p>
+                            ${customer.address ? `<p class="text-sm text-gray-500 mt-1">📍 ${customer.address}${customer.city ? `, ${customer.city}` : ''}${customer.state ? `, ${customer.state}` : ''}${customer.zipCode ? ` ${customer.zipCode}` : ''}${customer.country ? `, ${customer.country}` : ''}</p>` : ''}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-customer-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-customer-id="${customer.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                            <button class="delete-customer-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-customer-id="${customer.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                            <button class="create-quote-btn text-green-500 hover:bg-green-50 p-2 rounded-lg" data-customer-id="${customer.id}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            updateQuoteCustomerSelect();
+            
+            // Add event listeners for checkboxes
+            container.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCustomerSelection);
+            });
+
+            // Add event listeners for buttons
+            container.querySelectorAll('.create-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const customerId = btn.dataset.customerId;
+                    openQuoteModal(customerId);
+                });
+            });
+
+            container.querySelectorAll('.edit-customer-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const customerId = parseInt(btn.dataset.customerId);
+                    const customer = customers.find(c => c.id === customerId);
+                    if (customer) {
+                        editingCustomerId = customerId;
+                        document.getElementById('customerModalTitle').textContent = 'Edit Customer';
+                        document.getElementById('customerName').value = customer.name;
+                        document.getElementById('customerContact').value = customer.contact;
+                        document.getElementById('customerEmail').value = customer.email;
+                        document.getElementById('customerPhone').value = customer.phone;
+                        document.getElementById('customerAddress').value = customer.address || '';
+                        document.getElementById('customerCity').value = customer.city || '';
+                        document.getElementById('customerState').value = customer.state || '';
+                        document.getElementById('customerZipCode').value = customer.zipCode || '';
+                        document.getElementById('customerCountry').value = customer.country || '';
+                        showModal('customerModal');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.delete-customer-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const customerId = parseInt(btn.dataset.customerId);
+                    showConfirmModal('Are you sure you want to delete this customer?', () => {
+                        customers = customers.filter(c => c.id !== customerId);
+                        renderCustomers();
+                        autoSave();
+                        hideConfirmModal();
+                    });
+                });
+            });
+
+            // Update selection state
+            updateCustomerSelection();
+        }
+
+        function updateQuoteCustomerSelect() {
+            const select = document.getElementById('quoteCustomer');
+            select.innerHTML = '<option value="">Choose a customer...</option>' +
+                customers.map(customer => `<option value="${customer.id}">${customer.name}</option>`).join('');
+        }
+
+        // Items Management
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            const searchTerm = document.getElementById('itemSearch').value.toLowerCase();
+            
+            const filteredItems = items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.description.toLowerCase().includes(searchTerm) ||
+                (item.category || 'Uncategorized').toLowerCase().includes(searchTerm)
+            );
+
+            // Group items by category
+            const itemsByCategory = {};
+            filteredItems.forEach(item => {
+                const category = item.category || 'Uncategorized';
+                if (!itemsByCategory[category]) {
+                    itemsByCategory[category] = [];
+                }
+                itemsByCategory[category].push(item);
+            });
+
+            // Sort categories alphabetically, but put 'Uncategorized' last
+            const sortedCategories = Object.keys(itemsByCategory).sort((a, b) => {
+                if (a === 'Uncategorized') return 1;
+                if (b === 'Uncategorized') return -1;
+                return a.localeCompare(b);
+            });
+
+            if (sortedCategories.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <p>No items found</p>
+                        <p class="text-sm">Try adjusting your search or add new items</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sortedCategories.map(categoryName => {
+                const categoryItems = itemsByCategory[categoryName];
+                const categoryId = categoryName.replace(/\s+/g, '-').toLowerCase();
+                const categoryTotal = categoryItems.reduce((sum, item) => {
+                    const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                    return sum + finalPrice;
+                }, 0);
+
+                const categoryItemsHtml = categoryItems.map(item => {
+                    const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                    const hasMarkup = item.markupType && item.markupType !== 'none' && item.markupValue > 0;
+                    
+                    return `
+                        <div class="bg-white p-4 rounded-lg border border-gray-200 ml-4">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" class="item-checkbox mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-item-id="${item.id}">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <h4 class="font-semibold text-gray-800">${item.name}</h4>
+                                        ${hasMarkup ? '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Markup Applied</span>' : ''}
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">${item.description}</p>
+                                    <div class="space-y-1">
+                                        ${hasMarkup ? `<p class="text-sm text-gray-500">Base: $${(item.basePrice || item.price).toLocaleString()}</p>` : ''}
+                                        <p class="text-lg font-bold text-green-600">$${finalPrice.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="edit-item-btn text-blue-500 hover:bg-blue-50 p-2 rounded-lg" data-item-id="${item.id}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="markup-item-btn text-orange-500 hover:bg-orange-50 p-2 rounded-lg" data-item-id="${item.id}" title="Apply Markup">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="delete-item-btn text-red-500 hover:bg-red-50 p-2 rounded-lg" data-item-id="${item.id}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="category-section mb-6">
+                        <div class="category-header bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 rounded-t-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <button type="button" class="category-toggle-items flex items-center space-x-2" data-category="${categoryId}">
+                                        <svg class="w-5 h-5 transform transition-transform category-arrow-items" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        <h3 class="text-lg font-semibold">${categoryName}</h3>
+                                    </button>
+                                    <span class="bg-white bg-opacity-20 px-2 py-1 rounded-full text-sm">${categoryItems.length} item${categoryItems.length !== 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm opacity-90">Category Total</div>
+                                    <div class="text-xl font-bold">$${categoryTotal.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="category-items-list bg-gray-50 rounded-b-lg border-l-4 border-r-4 border-b-4 border-blue-500" data-category="${categoryId}">
+                            <div class="p-4 space-y-3">
+                                ${categoryItemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateItemSelector();
+
+            // Add event listeners for category toggles
+            container.querySelectorAll('.category-toggle-items').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    const categoryId = e.currentTarget.dataset.category;
+                    const itemsContainer = container.querySelector(`[data-category="${categoryId}"].category-items-list`);
+                    const arrow = e.currentTarget.querySelector('.category-arrow-items');
+                    
+                    if (itemsContainer.classList.contains('hidden')) {
+                        itemsContainer.classList.remove('hidden');
+                        arrow.style.transform = 'rotate(90deg)';
+                    } else {
+                        itemsContainer.classList.add('hidden');
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
+
+            // Add event listeners for checkboxes
+            container.querySelectorAll('.item-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateItemSelection);
+            });
+
+            // Add event listeners for buttons
+            container.querySelectorAll('.edit-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const itemId = parseFloat(btn.dataset.itemId); // Use parseFloat to handle decimal IDs
+                    const item = items.find(i => i.id === itemId);
+                    if (item) {
+                        editingItemId = itemId;
+                        document.getElementById('itemModalTitle').textContent = 'Edit Item';
+                        document.getElementById('itemName').value = item.name;
+                        document.getElementById('itemCategory').value = item.category || '';
+                        document.getElementById('itemDescription').value = item.description;
+                        document.getElementById('itemPrice').value = item.basePrice || item.price;
+                        
+                        // Set markup values
+                        const markupType = item.markupType || 'none';
+                        document.querySelector(`input[name="markupType"][value="${markupType}"]`).checked = true;
+                        
+                        if (markupType === 'percent') {
+                            document.getElementById('markupPercentValue').value = item.markupValue || 0;
+                            document.getElementById('markupPercentValue').disabled = false;
+                            document.getElementById('markupFixedValue').disabled = true;
+                        } else if (markupType === 'fixed') {
+                            document.getElementById('markupFixedValue').value = item.markupValue || 0;
+                            document.getElementById('markupFixedValue').disabled = false;
+                            document.getElementById('markupPercentValue').disabled = true;
+                        } else {
+                            document.getElementById('markupPercentValue').disabled = true;
+                            document.getElementById('markupFixedValue').disabled = true;
+                        }
+                        
+                        updateItemPricePreview();
+                        showModal('itemModal');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.markup-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const itemId = parseFloat(btn.dataset.itemId);
+                    showMarkupModal(itemId);
+                });
+            });
+
+            container.querySelectorAll('.delete-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const itemId = parseFloat(btn.dataset.itemId); // Use parseFloat to handle decimal IDs
+                    console.log('Deleting item with ID:', itemId, 'Type:', typeof itemId);
+                    showConfirmModal('Are you sure you want to delete this item?', () => {
+                        const originalLength = items.length;
+                        items = items.filter(i => {
+                            // Use epsilon comparison for floating point IDs
+                            const isMatch = Math.abs(i.id - itemId) < 0.0001;
+                            console.log('Comparing:', i.id, 'with', itemId, 'Match:', isMatch, 'Keep:', !isMatch);
+                            return !isMatch; // Keep items that DON'T match
+                        });
+                        console.log('Items before:', originalLength, 'Items after:', items.length);
+                        renderItems();
+                        autoSave();
+                        hideConfirmModal();
+                    });
+                });
+            });
+
+            // Update selection state
+            updateItemSelection();
+        }
+
+        function updateItemSelector() {
+            const container = document.getElementById('itemCategoriesContainer');
+            
+            // Group items by category
+            const categories = {};
+            items.forEach(item => {
+                const category = item.category || 'Uncategorized';
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(item);
+            });
+
+            // Generate categorized HTML
+            const categoriesHtml = Object.keys(categories).sort().map(categoryName => {
+                const categoryItems = categories[categoryName];
+                const categoryId = categoryName.replace(/\s+/g, '-').toLowerCase();
+                
+                return `
+                    <div class="category-group">
+                        <button type="button" class="category-toggle w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 border-b border-gray-200 flex items-center justify-between" data-category="${categoryId}">
+                            <span class="font-medium text-gray-800">${categoryName} (${categoryItems.length})</span>
+                            <svg class="w-4 h-4 text-gray-600 transform transition-transform category-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                        <div class="category-items hidden" data-category="${categoryId}">
+                            ${categoryItems.map(item => {
+                                const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                                return `
+                                <button type="button" class="item-select-btn w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-100 last:border-b-0" data-item-id="${item.id}">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-800">${item.name}</div>
+                                            <div class="text-sm text-gray-600">${item.description}</div>
+                                        </div>
+                                        <div class="text-sm font-bold text-green-600">$${finalPrice.toLocaleString()}</div>
+                                    </div>
+                                </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = categoriesHtml || '<div class="p-4 text-center text-gray-500 text-sm">No items available</div>';
+
+            // Add event listeners for category toggles
+            container.querySelectorAll('.category-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    const categoryId = e.currentTarget.dataset.category;
+                    const itemsContainer = container.querySelector(`[data-category="${categoryId}"].category-items`);
+                    const arrow = e.currentTarget.querySelector('.category-arrow');
+                    
+                    if (itemsContainer.classList.contains('hidden')) {
+                        itemsContainer.classList.remove('hidden');
+                        arrow.style.transform = 'rotate(90deg)';
+                    } else {
+                        itemsContainer.classList.add('hidden');
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
+
+            // Add event listeners for item selection
+            container.querySelectorAll('.item-select-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const itemId = parseFloat(e.currentTarget.dataset.itemId); // Use parseFloat to handle decimal IDs
+                    const item = items.find(i => i.id === itemId);
+                    
+                    if (item && !selectedQuoteItems.find(si => si.id === itemId)) {
+                        const finalPrice = calculateFinalPrice(item.basePrice || item.price, item.markupType || 'none', item.markupValue || 0);
+                        selectedQuoteItems.push({
+                            ...item,
+                            price: finalPrice, // Use final price with markup
+                            quantity: 1
+                        });
+                        updateSelectedItems();
+                        updateQuoteTotal();
+                    }
+                });
+            });
+        }
+
+        // Dashboard Functions
+        function renderDashboard() {
+            renderAgingOverview();
+            renderFollowUpList();
+        }
+
+        function renderAgingTab() {
+            renderAgingOverviewDetailed();
+            renderFollowUpListDetailed();
+            renderAgingQuotesList();
+        }
+
+        function renderAgingOverview() {
+            const sentQuotes = quotes.filter(q => q.status === 'Sent');
+            const agingStats = {
+                fresh: 0,
+                warm: 0,
+                aging: 0,
+                stale: 0
+            };
+
+            sentQuotes.forEach(quote => {
+                const age = getQuoteAge(quote);
+                const category = getQuoteAgeCategory(age);
+                agingStats[category.category]++;
+            });
+
+            const container = document.getElementById('agingOverview');
+            
+            if (sentQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <p class="text-sm">No sent quotes to track</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-green-800">Fresh (≤7 days)</span>
+                            <span class="text-lg font-bold text-green-600">${agingStats.fresh}</span>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-yellow-800">Warm (8-14 days)</span>
+                            <span class="text-lg font-bold text-yellow-600">${agingStats.warm}</span>
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-orange-800">Aging (15-30 days)</span>
+                            <span class="text-lg font-bold text-orange-600">${agingStats.aging}</span>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-red-800">Stale (>30 days)</span>
+                            <span class="text-lg font-bold text-red-600">${agingStats.stale}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFollowUpList() {
+            const followUpQuotes = getQuotesNeedingFollowUp();
+            const container = document.getElementById('followUpList');
+
+            if (followUpQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <p class="text-sm">All caught up! No follow-ups needed.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = followUpQuotes.map(quote => {
+                const age = getQuoteAge(quote);
+                const ageCategory = getQuoteAgeCategory(age);
+                
+                return `
+                    <div class="bg-${ageCategory.color}-50 p-3 rounded-lg border border-${ageCategory.color}-200">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <h5 class="font-medium text-gray-800">${quote.title}</h5>
+                                <p class="text-sm text-gray-600">${quote.customer}</p>
+                                <p class="text-sm text-${ageCategory.color}-600 font-medium">${age} days old - ${ageCategory.label}</p>
+                            </div>
+                            <span class="text-sm font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                        </div>
+                        <div class="flex space-x-1">
+                            <button class="call-follow-up-btn flex-1 bg-green-500 text-white py-1 px-2 rounded text-xs hover:bg-green-600 transition-colors" data-quote-id="${quote.id}">
+                                📞 Call
+                            </button>
+                            <button class="email-follow-up-btn flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
+                                📧 Email
+                            </button>
+                            <button class="schedule-follow-up-btn flex-1 bg-gray-500 text-white py-1 px-2 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
+                                📅 Later
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners for follow-up buttons
+            container.querySelectorAll('.call-follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    callCustomer(quoteId);
+                });
+            });
+
+            container.querySelectorAll('.email-follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    emailCustomerFollowUp(quoteId);
+                });
+            });
+
+            container.querySelectorAll('.schedule-follow-up-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        scheduleFollowUp(quoteId, date);
+                    }
+                });
+            });
+        }
+
+        function renderAgingOverviewDetailed() {
+            const sentQuotes = quotes.filter(q => q.status === 'Sent');
+            const agingStats = {
+                fresh: { count: 0, value: 0, quotes: [] },
+                warm: { count: 0, value: 0, quotes: [] },
+                aging: { count: 0, value: 0, quotes: [] },
+                stale: { count: 0, value: 0, quotes: [] }
+            };
+
+            sentQuotes.forEach(quote => {
+                const age = getQuoteAge(quote);
+                const category = getQuoteAgeCategory(age);
+                agingStats[category.category].count++;
+                agingStats[category.category].value += quote.total;
+                agingStats[category.category].quotes.push(quote);
+            });
+
+            const container = document.getElementById('agingOverviewDetailed');
+            
+            if (sentQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <p class="text-sm">No sent quotes to track</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalValue = sentQuotes.reduce((sum, q) => sum + q.total, 0);
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-green-800">Fresh (≤7 days)</span>
+                            <span class="text-lg font-bold text-green-600">${agingStats.fresh.count}</span>
+                        </div>
+                        <div class="text-sm text-green-700">
+                            Total Value: $${agingStats.fresh.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-yellow-800">Warm (8-14 days)</span>
+                            <span class="text-lg font-bold text-yellow-600">${agingStats.warm.count}</span>
+                        </div>
+                        <div class="text-sm text-yellow-700">
+                            Total Value: $${agingStats.warm.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-orange-800">Aging (15-30 days)</span>
+                            <span class="text-lg font-bold text-orange-600">${agingStats.aging.count}</span>
+                        </div>
+                        <div class="text-sm text-orange-700">
+                            Total Value: $${agingStats.aging.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-red-800">Stale (>30 days)</span>
+                            <span class="text-lg font-bold text-red-600">${agingStats.stale.count}</span>
+                        </div>
+                        <div class="text-sm text-red-700">
+                            Total Value: $${agingStats.stale.value.toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-blue-800">Total Outstanding</span>
+                            <span class="text-xl font-bold text-blue-600">$${totalValue.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFollowUpListDetailed() {
+            const followUpQuotes = getQuotesNeedingFollowUp();
+            const container = document.getElementById('followUpListDetailed');
+
+            if (followUpQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <p class="text-sm">All caught up!</p>
+                        <p class="text-xs text-gray-400">No follow-ups needed</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalValue = followUpQuotes.reduce((sum, q) => sum + q.total, 0);
+
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600">${followUpQuotes.length}</div>
+                            <div class="text-sm text-orange-800">Quotes Need Follow-Up</div>
+                            <div class="text-sm text-orange-700">$${totalValue.toLocaleString()} at risk</div>
+                        </div>
+                    </div>
+                    ${followUpQuotes.slice(0, 5).map(quote => {
+                        const age = getQuoteAge(quote);
+                        const ageCategory = getQuoteAgeCategory(age);
+                        
+                        return `
+                            <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-gray-800 text-sm">${quote.title}</h5>
+                                        <p class="text-xs text-gray-600">${quote.customer}</p>
+                                        <p class="text-xs text-${ageCategory.color}-600 font-medium">${age} days - ${ageCategory.label}</p>
+                                    </div>
+                                    <span class="text-sm font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button class="call-detailed-btn flex-1 bg-green-500 text-white py-1 px-2 rounded text-xs hover:bg-green-600 transition-colors" data-quote-id="${quote.id}">
+                                        📞 Call
+                                    </button>
+                                    <button class="email-detailed-btn flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors" data-quote-id="${quote.id}">
+                                        📧 Email
+                                    </button>
+                                    <button class="schedule-detailed-btn flex-1 bg-gray-500 text-white py-1 px-2 rounded text-xs hover:bg-gray-600 transition-colors" data-quote-id="${quote.id}">
+                                        📅 Later
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                    ${followUpQuotes.length > 5 ? `<div class="text-center text-sm text-gray-500">... and ${followUpQuotes.length - 5} more</div>` : ''}
+                </div>
+            `;
+
+            // Add event listeners
+            container.querySelectorAll('.call-detailed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    callCustomer(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.email-detailed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    emailCustomerFollowUp(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.schedule-detailed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        scheduleFollowUp(quoteId, date);
+                        renderAgingTab();
+                    }
+                });
+            });
+        }
+
+        function renderAgingQuotesList() {
+            const filter = document.getElementById('agingFilter')?.value || 'all';
+            let filteredQuotes = quotes.filter(q => q.status === 'Sent');
+            
+            if (filter !== 'all') {
+                if (filter === 'needsFollowUp') {
+                    const followUpQuotes = getQuotesNeedingFollowUp();
+                    filteredQuotes = filteredQuotes.filter(q => followUpQuotes.some(fq => fq.id === q.id));
+                } else {
+                    filteredQuotes = filteredQuotes.filter(quote => {
+                        const age = getQuoteAge(quote);
+                        const category = getQuoteAgeCategory(age);
+                        return category.category === filter;
+                    });
+                }
+            }
+
+            const container = document.getElementById('agingQuotesList');
+            
+            if (filteredQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <p class="text-sm">No quotes match the selected filter</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by age (oldest first)
+            filteredQuotes.sort((a, b) => getQuoteAge(b) - getQuoteAge(a));
+
+            container.innerHTML = filteredQuotes.map(quote => {
+                const age = getQuoteAge(quote);
+                const ageCategory = getQuoteAgeCategory(age);
+                const needsFollowUp = getQuotesNeedingFollowUp().some(q => q.id === quote.id);
+                
+                return `
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 ${needsFollowUp ? 'ring-2 ring-orange-300' : ''}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800">${quote.title}</h4>
+                                <p class="text-sm text-gray-600">${quote.customer}</p>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-${ageCategory.color}-100 text-${ageCategory.color}-800">${age} days - ${ageCategory.label}</span>
+                                    ${needsFollowUp ? '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">Follow-up Due</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-lg font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <div>Sent: ${quote.sentDate}</div>
+                                    ${quote.lastFollowUp ? `<div class="text-green-600">Last follow-up: ${quote.lastFollowUp}</div>` : ''}
+                                    ${quote.followUpDate ? `<div class="text-blue-600">Next: ${quote.followUpDate}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        ${needsFollowUp ? `
+                            <div class="flex space-x-2 mt-3">
+                                <button class="aging-call-btn flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📞 Call Now
+                                </button>
+                                <button class="aging-email-btn flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📧 Email Now
+                                </button>
+                                <button class="aging-schedule-btn flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📅 Schedule Later
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners
+            container.querySelectorAll('.aging-call-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    callCustomer(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.aging-email-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    emailCustomerFollowUp(quoteId);
+                    renderAgingTab();
+                });
+            });
+
+            container.querySelectorAll('.aging-schedule-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const quoteId = parseInt(e.target.dataset.quoteId);
+                    const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        scheduleFollowUp(quoteId, date);
+                        renderAgingTab();
+                    }
+                });
+            });
+        }
+
+        // Quote Management
+        function renderQuotes() {
+            const container = document.getElementById('quotesList');
+            
+            if (quotes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p>No quotes yet</p>
+                        <p class="text-sm">Create your first quote to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = quotes.map(quote => {
+                const age = getQuoteAge(quote);
+                const ageCategory = getQuoteAgeCategory(age);
+                const needsFollowUp = getQuotesNeedingFollowUp().some(q => q.id === quote.id);
+                
+                return `
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 ${needsFollowUp ? 'ring-2 ring-orange-300' : ''}">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-800">${quote.title}</h4>
+                            <div class="flex space-x-2">
+                                ${quote.status === 'Sent' ? `<span class="px-2 py-1 text-xs rounded-full bg-${ageCategory.color}-100 text-${ageCategory.color}-800">${age}d - ${ageCategory.label}</span>` : ''}
+                                <span class="px-2 py-1 text-xs rounded-full ${quote.status === 'Sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${quote.status}</span>
+                                ${needsFollowUp ? '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">Follow-up Due</span>' : ''}
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">${quote.customer}</p>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-lg font-bold text-blue-600">$${quote.total.toLocaleString()}</span>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">Created: ${quote.date}</div>
+                                ${quote.sentDate ? `<div class="text-sm text-gray-500">Sent: ${quote.sentDate}</div>` : ''}
+                                ${quote.lastFollowUp ? `<div class="text-sm text-green-600">Last follow-up: ${quote.lastFollowUp}</div>` : ''}
+                                ${quote.followUpDate ? `<div class="text-sm text-blue-600">Next follow-up: ${quote.followUpDate}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-quote-btn flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                Edit
+                            </button>
+                            ${quote.status === 'Sent' ? `
+                                <button class="email-quote-btn flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    📧 Email
+                                </button>
+                            ` : ''}
+                            ${quote.status === 'Sent' && needsFollowUp ? `
+                                <button class="follow-up-quote-btn flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                    Follow Up
+                                </button>
+                            ` : ''}
+                            <button class="delete-quote-btn flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors text-sm" data-quote-id="${quote.id}">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners
+            container.querySelectorAll('.edit-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    const quote = quotes.find(q => q.id === quoteId);
+                    if (quote) {
+                        editQuote(quote);
+                    }
+                });
+            });
+
+            container.querySelectorAll('.email-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    const quote = quotes.find(q => q.id === quoteId);
+                    if (quote) {
+                        openEmailForQuote(quote);
+                    }
+                });
+            });
+
+            container.querySelectorAll('.follow-up-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    const action = confirm('Mark as followed up now, or schedule for later?\n\nOK = Mark followed up now\nCancel = Schedule for later');
+                    
+                    if (action) {
+                        markQuoteFollowedUp(quoteId);
+                    } else {
+                        const date = prompt('Enter follow-up date (YYYY-MM-DD):');
+                        if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                            scheduleFollowUp(quoteId, date);
+                        }
+                    }
+                });
+            });
+
+            container.querySelectorAll('.delete-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const quoteId = parseInt(btn.dataset.quoteId);
+                    showConfirmModal('Are you sure you want to delete this quote?', () => {
+                        quotes = quotes.filter(q => q.id !== quoteId);
+                        renderQuotes();
+                        renderDashboard();
+                        autoSave();
+                        hideConfirmModal();
+                    });
+                });
+            });
+        }
+
+        function editQuote(quote) {
+            editingQuoteId = quote.id;
+            
+            document.getElementById('quoteModalTitle').textContent = 'Edit Quote';
+            document.getElementById('quoteCustomer').value = quote.customerInfo.id;
+            document.getElementById('quoteTitle').value = quote.title;
+            document.getElementById('quoteNotes').value = quote.notes || '';
+            
+            selectedQuoteItems = quote.items.map(item => ({...item}));
+            updateSelectedItems();
+            updateQuoteTotal();
+            
+            showModal('quoteModal');
+        }
+
+        // Data persistence functions
+        function loadDataFromLocalStorage() {
+            const savedCustomers = localStorage.getItem('quoteit-customers');
+            const savedItems = localStorage.getItem('quoteit-items');
+            const savedQuotes = localStorage.getItem('quoteit-quotes');
+            const savedCompanyInfo = localStorage.getItem('quoteit-company');
+            const savedQuoteSettings = localStorage.getItem('quoteit-settings');
+            
+            if (savedCustomers) customers = JSON.parse(savedCustomers);
+            if (savedItems) items = JSON.parse(savedItems);
+            if (savedQuotes) quotes = JSON.parse(savedQuotes);
+            if (savedCompanyInfo) companyInfo = JSON.parse(savedCompanyInfo);
+            if (savedQuoteSettings) quoteSettings = JSON.parse(savedQuoteSettings);
+        }
+
+        function autoSave() {
+            localStorage.setItem('quoteit-customers', JSON.stringify(customers));
+            localStorage.setItem('quoteit-items', JSON.stringify(items));
+            localStorage.setItem('quoteit-quotes', JSON.stringify(quotes));
+            localStorage.setItem('quoteit-company', JSON.stringify(companyInfo));
+            localStorage.setItem('quoteit-settings', JSON.stringify(quoteSettings));
+        }
+
+        function loadCompanySettings() {
+            document.getElementById('companyName').value = companyInfo.name || '';
+            document.getElementById('companyAddress').value = companyInfo.address || '';
+            document.getElementById('companyPhone').value = companyInfo.phone || '';
+            document.getElementById('companyEmail').value = companyInfo.email || '';
+            document.getElementById('companyWebsite').value = companyInfo.website || '';
+            document.getElementById('hideLineItemPricing').checked = quoteSettings.hideLineItemPricing;
+            document.getElementById('defaultTerms').value = quoteSettings.defaultTerms || '';
+            
+            // Load logo if exists
+            if (companyInfo.logo) {
+                document.getElementById('logoImage').src = companyInfo.logo;
+                document.getElementById('logoPreview').classList.remove('hidden');
+                document.getElementById('logoPlaceholder').classList.add('hidden');
+                document.getElementById('removeLogo').classList.remove('hidden');
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
+            
+            // Navigation Event Listeners
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Nav button clicked:', this.dataset.tab);
+                    showTab(this.dataset.tab);
+                });
+            });
+
+            // Dashboard navigation triggers
+            document.querySelectorAll('.nav-trigger').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Dashboard nav trigger clicked:', this.dataset.tab);
+                    showTab(this.dataset.tab);
+                });
+            });
+
+            // Menu navigation buttons
+            document.querySelectorAll('.menu-nav-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Menu nav button clicked:', this.dataset.tab);
+                    showTab(this.dataset.tab);
+                    document.getElementById('menuDropdown').classList.add('hidden');
+                });
+            });
+
+            // Quote creation buttons
+            document.getElementById('newQuoteBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                openQuoteModal();
+            });
+
+            document.getElementById('menuCreateQuote').addEventListener('click', (e) => {
+                e.preventDefault();
+                openQuoteModal();
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            document.querySelectorAll('.create-quote-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openQuoteModal();
+                });
+            });
+
+            // Close modal functionality
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const modal = e.target.closest('.fixed');
+                    modal.classList.add('hidden');
+                });
+            });
+
+            // Menu dropdown functionality
+            document.getElementById('menuBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('menuDropdown');
+                dropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            // Theme switching
+            document.getElementById('lightTheme').addEventListener('click', () => {
+                currentTheme = 'light';
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            document.getElementById('darkTheme').addEventListener('click', () => {
+                currentTheme = 'dark';
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('menuDropdown').classList.add('hidden');
+            });
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.body.classList.add('dark-theme');
+            }
+
+            // Quote modal event listeners - item selection is now handled in updateItemSelector()
+
+            document.getElementById('addCustomItem').addEventListener('click', () => {
+                const name = document.getElementById('customItemName').value.trim();
+                const price = parseFloat(document.getElementById('customItemPrice').value);
+                
+                if (name && price > 0) {
+                    selectedQuoteItems.push({
+                        id: Date.now(),
+                        name,
+                        description: 'Custom item',
+                        price,
+                        quantity: 1,
+                        isCustom: true
+                    });
+                    
+                    updateSelectedItems();
+                    updateQuoteTotal();
+                    
+                    document.getElementById('customItemName').value = '';
+                    document.getElementById('customItemPrice').value = '';
+                }
+            });
+
+            document.getElementById('previewQuote').addEventListener('click', () => {
+                generateQuotePreview();
+            });
+
+            document.getElementById('saveQuote').addEventListener('click', () => {
+                saveQuote('Draft');
+            });
+
+            document.getElementById('sendQuote').addEventListener('click', () => {
+                saveQuote('Sent');
+            });
+
+            document.getElementById('closeQuoteModal').addEventListener('click', () => {
+                hideModal('quoteModal');
+            });
+
+            // Preview modal
+            document.getElementById('closePreviewModal').addEventListener('click', () => {
+                hideModal('quotePreviewModal');
+            });
+
+            // PDF Download
+            document.getElementById('downloadPDF').addEventListener('click', () => {
+                const button = document.getElementById('downloadPDF');
+                const originalText = button.textContent;
+                button.textContent = '⏳ Generating...';
+                button.disabled = true;
+                
+                // Get current quote data for filename
+                const customerId = document.getElementById('quoteCustomer').value;
+                const title = document.getElementById('quoteTitle').value.trim();
+                let filename = null;
+                
+                if (customerId && title) {
+                    const customer = customers.find(c => c.id == customerId);
+                    if (customer) {
+                        const customerName = customer.name.replace(/[^a-zA-Z0-9]/g, '_');
+                        const titleName = title.replace(/[^a-zA-Z0-9]/g, '_');
+                        const dateStr = new Date().toISOString().slice(0, 10);
+                        filename = `${customerName}_${titleName}_${dateStr}.pdf`;
+                    }
+                }
+                
+                generateAndDownloadPDF(filename).then((result) => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    alert(`✅ PDF downloaded successfully as "${result.filename}"`);
+                }).catch((error) => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    console.error('PDF generation error:', error);
+                    alert('❌ Failed to generate PDF. Please try again or check the console for details.');
+                });
+            });
+
+            // Logo upload
+            document.getElementById('logoUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('File size must be less than 2MB');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        companyInfo.logo = e.target.result;
+                        document.getElementById('logoImage').src = e.target.result;
+                        document.getElementById('logoPreview').classList.remove('hidden');
+                        document.getElementById('logoPlaceholder').classList.add('hidden');
+                        document.getElementById('removeLogo').classList.remove('hidden');
+                        autoSave();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('removeLogo').addEventListener('click', () => {
+                companyInfo.logo = '';
+                document.getElementById('logoImage').src = '';
+                document.getElementById('logoPreview').classList.add('hidden');
+                document.getElementById('logoPlaceholder').classList.remove('hidden');
+                document.getElementById('removeLogo').classList.add('hidden');
+                document.getElementById('logoUpload').value = '';
+                autoSave();
+            });
+
+            // Import/Export functionality
+            document.getElementById('importCustomersBtn').addEventListener('click', () => {
+                currentImportType = 'customers';
+                document.getElementById('importModalTitle').textContent = 'Import Customers';
+                document.getElementById('importInstructions').innerHTML = `
+                    <p class="font-medium mb-2">Required columns:</p>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>name</strong> - Company name</li>
+                        <li><strong>contact</strong> - Contact person</li>
+                        <li><strong>email</strong> - Email address</li>
+                        <li><strong>phone</strong> - Phone number</li>
+                    </ul>
+                    <p class="font-medium mb-2 mt-3">Optional columns:</p>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>address</strong> - Street address</li>
+                        <li><strong>city</strong> - City</li>
+                        <li><strong>state</strong> - State/Province</li>
+                        <li><strong>zipCode</strong> - ZIP/Postal code</li>
+                        <li><strong>country</strong> - Country</li>
+                    </ul>
+                `;
+                showModal('importModal');
+            });
+
+            document.getElementById('importItemsBtn').addEventListener('click', () => {
+                currentImportType = 'items';
+                document.getElementById('importModalTitle').textContent = 'Import Items';
+                document.getElementById('importInstructions').innerHTML = `
+                    <p class="font-medium mb-2">Required columns:</p>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>name</strong> - Item name</li>
+                        <li><strong>category</strong> - Item category (optional)</li>
+                        <li><strong>description</strong> - Item description</li>
+                        <li><strong>price</strong> - Item price (number)</li>
+                    </ul>
+                `;
+                showModal('importModal');
+            });
+
+            // Robust export functionality with proper file generation
+            function exportCustomersToExcel() {
+                try {
+                    console.log('🚀 Starting customer export...');
+                    
+                    if (customers.length === 0) {
+                        showNotification('No customers to export.', 'warning');
+                        return;
+                    }
+                    
+                    // Check XLSX library availability
+                    if (!window.XLSX || !window.XLSX.utils) {
+                        console.error('❌ XLSX library not available');
+                        showNotification('❌ Excel library not loaded. Please refresh the page and try again.', 'error');
+                        return;
+                    }
+                    
+                    console.log(`📊 Preparing to export ${customers.length} customers...`);
+                    
+                    const exportData = customers.map(c => ({
+                        name: c.name || '',
+                        contact: c.contact || '',
+                        email: c.email || '',
+                        phone: c.phone || '',
+                        address: c.address || '',
+                        city: c.city || '',
+                        state: c.state || '',
+                        zipCode: c.zipCode || '',
+                        country: c.country || ''
+                    }));
+                    
+                    console.log('✅ Customer export data prepared:', exportData.length, 'records');
+                    
+                    const filename = `customers_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    console.log('📁 Generating file:', filename);
+                    
+                    // Use the robust download function
+                    downloadExcelFile(exportData, filename, 'customers', customers.length);
+                    
+                } catch (error) {
+                    console.error('💥 Customer export error:', error);
+                    showNotification(`❌ Failed to export customers: ${error.message}`, 'error');
+                }
+            }
+
+            function exportItemsToExcel() {
+                try {
+                    console.log('🚀 Starting items export...');
+                    
+                    if (items.length === 0) {
+                        showNotification('No items to export.', 'warning');
+                        return;
+                    }
+                    
+                    // Check XLSX library availability
+                    if (!window.XLSX || !window.XLSX.utils) {
+                        console.error('❌ XLSX library not available');
+                        showNotification('❌ Excel library not loaded. Please refresh the page and try again.', 'error');
+                        return;
+                    }
+                    
+                    console.log(`📊 Preparing to export ${items.length} items...`);
+                    
+                    const exportData = items.map(i => ({
+                        name: i.name || '',
+                        category: i.category || 'Uncategorized',
+                        description: i.description || '',
+                        basePrice: i.basePrice || i.price || 0,
+                        markupType: i.markupType || 'none',
+                        markupValue: i.markupValue || 0,
+                        finalPrice: i.price || 0
+                    }));
+                    
+                    console.log('✅ Items export data prepared:', exportData.length, 'records');
+                    
+                    const filename = `items_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    console.log('📁 Generating file:', filename);
+                    
+                    // Use the robust download function
+                    downloadExcelFile(exportData, filename, 'items', items.length);
+                    
+                } catch (error) {
+                    console.error('💥 Items export error:', error);
+                    showNotification(`❌ Failed to export items: ${error.message}`, 'error');
+                }
+            }
+
+            // Robust Excel file download function with forced download
+            function downloadExcelFile(data, filename, dataType, recordCount) {
+                console.log('🔄 Starting FORCED Excel file generation...');
+                
+                try {
+                    // Create worksheet from JSON data
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    
+                    // Create workbook and add worksheet
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, dataType.charAt(0).toUpperCase() + dataType.slice(1));
+                    
+                    console.log('📋 Workbook created successfully');
+                    
+                    // FORCE METHOD: Always use blob creation for maximum compatibility
+                    console.log('📥 FORCED METHOD: Creating blob with manual download...');
+                    
+                    // Generate binary data with maximum compatibility settings
+                    const wbout = XLSX.write(wb, {
+                        bookType: 'xlsx',
+                        type: 'array',
+                        compression: false // Disable compression for better compatibility
+                    });
+                    
+                    console.log('📦 Binary data generated, size:', wbout.length, 'bytes');
+                    
+                    // Create blob with explicit MIME type
+                    const blob = new Blob([wbout], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'
+                    });
+                    
+                    console.log('📦 Blob created successfully, size:', blob.size, 'bytes');
+                    
+                    // Create object URL
+                    const url = (window.URL || window.webkitURL).createObjectURL(blob);
+                    console.log('🔗 Object URL created:', url.substring(0, 50) + '...');
+                    
+                    // Create download link with all attributes
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = url;
+                    downloadLink.download = filename;
+                    downloadLink.type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                    downloadLink.style.display = 'none';
+                    downloadLink.target = '_blank';
+                    
+                    // Add to DOM
+                    document.body.appendChild(downloadLink);
+                    console.log('🔗 Download link added to DOM');
+                    
+                    // Force click with multiple methods
+                    console.log('🖱️ Attempting FORCED click...');
+                    
+                    // Method 1: Direct click
+                    downloadLink.click();
+                    console.log('✅ Direct click executed');
+                    
+                    // Method 2: Programmatic event (backup)
+                    setTimeout(() => {
+                        const clickEvent = new MouseEvent('click', {
+                            view: window,
+                            bubbles: true,
+                            cancelable: true,
+                            button: 0
+                        });
+                        downloadLink.dispatchEvent(clickEvent);
+                        console.log('✅ Event-based click executed');
+                    }, 100);
+                    
+                    // Method 3: Focus and click (backup)
+                    setTimeout(() => {
+                        downloadLink.focus();
+                        downloadLink.click();
+                        console.log('✅ Focus-based click executed');
+                    }, 200);
+                    
+                    // Show immediate success message
+                    showNotification(`✅ Generating ${filename}... Check your Downloads folder!`, 'success');
+                    
+                    // Cleanup after delay
+                    setTimeout(() => {
+                        try {
+                            if (document.body.contains(downloadLink)) {
+                                document.body.removeChild(downloadLink);
+                            }
+                            (window.URL || window.webkitURL).revokeObjectURL(url);
+                            console.log('🧹 Cleanup completed');
+                            
+                            // Final success message
+                            showNotification(`✅ ${filename} should now be in your Downloads folder! (${recordCount} ${dataType} exported)`, 'success');
+                            
+                        } catch (cleanupError) {
+                            console.warn('⚠️ Cleanup warning:', cleanupError.message);
+                        }
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('💥 Excel generation failed:', error);
+                    showNotification(`❌ Failed to generate Excel file: ${error.message}`, 'error');
+                    
+                    // Fallback: Try simple CSV export
+                    console.log('🔄 Attempting CSV fallback...');
+                    try {
+                        exportAsCSV(data, filename.replace('.xlsx', '.csv'), dataType, recordCount);
+                    } catch (csvError) {
+                        console.error('💥 CSV fallback also failed:', csvError);
+                        showNotification(`❌ Both Excel and CSV export failed. Please try refreshing the page.`, 'error');
+                    }
+                }
+            }
+            
+            // CSV fallback function
+            function exportAsCSV(data, filename, dataType, recordCount) {
+                console.log('📄 Creating CSV fallback...');
+                
+                if (data.length === 0) {
+                    showNotification('No data to export', 'warning');
+                    return;
+                }
+                
+                // Get headers from first object
+                const headers = Object.keys(data[0]);
+                
+                // Create CSV content
+                let csvContent = headers.join(',') + '\n';
+                
+                data.forEach(row => {
+                    const values = headers.map(header => {
+                        const value = row[header] || '';
+                        // Escape commas and quotes
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                            return '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    });
+                    csvContent += values.join(',') + '\n';
+                });
+                
+                // Create blob and download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+                const url = (window.URL || window.webkitURL).createObjectURL(blob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = filename;
+                downloadLink.style.display = 'none';
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                setTimeout(() => {
+                    (window.URL || window.webkitURL).revokeObjectURL(url);
+                }, 1000);
+                
+                console.log('✅ CSV export completed');
+                showNotification(`✅ Exported as CSV: ${filename} (${recordCount} ${dataType})`, 'success');
+            }
+
+            // Add event listeners with proper error handling
+            const exportCustomersBtn = document.getElementById('exportCustomersBtn');
+            if (exportCustomersBtn) {
+                exportCustomersBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Export customers button clicked');
+                    exportCustomersToExcel();
+                });
+            } else {
+                console.error('Export customers button not found');
+            }
+
+            const exportItemsBtn = document.getElementById('exportItemsBtn');
+            if (exportItemsBtn) {
+                exportItemsBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Export items button clicked');
+                    exportItemsToExcel();
+                });
+            } else {
+                console.error('Export items button not found');
+            }
+
+            document.getElementById('importFile').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                document.getElementById('processImport').disabled = !file;
+            });
+
+            document.getElementById('processImport').addEventListener('click', () => {
+                const file = document.getElementById('importFile').files[0];
+                if (!file) return;
+
+                // Check if XLSX library is loaded
+                if (!window.XLSX) {
+                    showNotification('Excel library not loaded. Please refresh the page and try again.', 'error');
+                    return;
+                }
+
+                parseExcelFile(file, (error, data) => {
+                    if (error) {
+                        showNotification('Error reading file: ' + error.message, 'error');
+                        return;
+                    }
+
+                    if (currentImportType === 'customers') {
+                        processCustomerImport(data);
+                    } else if (currentImportType === 'items') {
+                        processItemImport(data);
+                    }
+
+                    hideModal('importModal');
+                    document.getElementById('importFile').value = '';
+                    document.getElementById('processImport').disabled = true;
+                });
+            });
+
+            function processCustomerImport(data) {
+                const validRows = data.filter(row => row.name && row.contact && row.email);
+                
+                if (validRows.length === 0) {
+                    showNotification('No valid customer data found. Please check that your file has the required columns: name, contact, email', 'error');
+                    return;
+                }
+
+                // Check for duplicates
+                const duplicates = [];
+                const newCustomers = [];
+                
+                validRows.forEach(row => {
+                    const existingCustomer = customers.find(c => 
+                        c.email.toLowerCase() === row.email.toLowerCase() || 
+                        (c.name.toLowerCase() === row.name.toLowerCase() && c.contact.toLowerCase() === row.contact.toLowerCase())
+                    );
+                    
+                    if (existingCustomer) {
+                        duplicates.push({ row, existing: existingCustomer });
+                    } else {
+                        newCustomers.push(row);
+                    }
+                });
+
+                if (duplicates.length > 0) {
+                    handleCustomerDuplicates(duplicates, newCustomers);
+                } else {
+                    // No duplicates, import all
+                    importNewCustomers(newCustomers);
+                }
+            }
+
+            function processItemImport(data) {
+                const validRows = data.filter(row => row.name && row.description && row.price);
+                
+                if (validRows.length === 0) {
+                    showNotification('No valid item data found. Please check that your file has the required columns: name, description, price', 'error');
+                    return;
+                }
+
+                // Check for duplicates
+                const duplicates = [];
+                const newItems = [];
+                
+                validRows.forEach(row => {
+                    const existingItem = items.find(i => 
+                        i.name.toLowerCase() === row.name.toLowerCase() && 
+                        i.description.toLowerCase() === row.description.toLowerCase()
+                    );
+                    
+                    if (existingItem) {
+                        duplicates.push({ row, existing: existingItem });
+                    } else {
+                        newItems.push(row);
+                    }
+                });
+
+                if (duplicates.length > 0) {
+                    handleItemDuplicates(duplicates, newItems);
+                } else {
+                    // No duplicates, import all
+                    importNewItems(newItems);
+                }
+            }
+
+            function handleCustomerDuplicates(duplicates, newCustomers) {
+                const message = `Found ${duplicates.length} duplicate customer(s) based on email or name+contact.\n\nChoose an option:`;
+                const choice = confirm(`${message}\n\nOK = Skip all duplicates\nCancel = Replace all duplicates`);
+                
+                if (choice) {
+                    // Skip duplicates, only import new customers
+                    importNewCustomers(newCustomers);
+                    showNotification(`Imported ${newCustomers.length} new customers. Skipped ${duplicates.length} duplicates.`, 'success');
+                } else {
+                    // Replace duplicates
+                    duplicates.forEach(({ row, existing }) => {
+                        const customerIndex = customers.findIndex(c => c.id === existing.id);
+                        if (customerIndex !== -1) {
+                            customers[customerIndex] = {
+                                id: existing.id, // Keep original ID
+                                name: row.name,
+                                contact: row.contact,
+                                email: row.email,
+                                phone: row.phone || '',
+                                address: row.address || '',
+                                city: row.city || '',
+                                state: row.state || '',
+                                zipCode: row.zipCode || '',
+                                country: row.country || ''
+                            };
+                        }
+                    });
+                    
+                    importNewCustomers(newCustomers);
+                    renderCustomers();
+                    autoSave();
+                    showNotification(`Imported ${newCustomers.length} new customers and replaced ${duplicates.length} existing customers.`, 'success');
+                }
+            }
+
+            function handleItemDuplicates(duplicates, newItems) {
+                const message = `Found ${duplicates.length} duplicate item(s) based on name and description.\n\nChoose an option:`;
+                const choice = confirm(`${message}\n\nOK = Skip all duplicates\nCancel = Replace all duplicates`);
+                
+                if (choice) {
+                    // Skip duplicates, only import new items
+                    importNewItems(newItems);
+                    showNotification(`Imported ${newItems.length} new items. Skipped ${duplicates.length} duplicates.`, 'success');
+                } else {
+                    // Replace duplicates
+                    duplicates.forEach(({ row, existing }) => {
+                        const itemIndex = items.findIndex(i => i.id === existing.id);
+                        if (itemIndex !== -1) {
+                            const basePrice = parseFloat(row.price) || 0;
+                            items[itemIndex] = {
+                                id: existing.id, // Keep original ID
+                                name: row.name,
+                                category: row.category || 'Uncategorized',
+                                description: row.description,
+                                basePrice: basePrice,
+                                price: basePrice,
+                                markupType: 'none',
+                                markupValue: 0
+                            };
+                        }
+                    });
+                    
+                    importNewItems(newItems);
+                    renderItems();
+                    autoSave();
+                    showNotification(`Imported ${newItems.length} new items and replaced ${duplicates.length} existing items.`, 'success');
+                }
+            }
+
+            function importNewCustomers(newCustomers) {
+                newCustomers.forEach(row => {
+                    customers.push({
+                        id: Date.now() + Math.random(),
+                        name: row.name,
+                        contact: row.contact,
+                        email: row.email,
+                        phone: row.phone || '',
+                        address: row.address || '',
+                        city: row.city || '',
+                        state: row.state || '',
+                        zipCode: row.zipCode || '',
+                        country: row.country || ''
+                    });
+                });
+                
+                renderCustomers();
+                autoSave();
+                
+                if (newCustomers.length > 0) {
+                    showNotification(`Successfully imported ${newCustomers.length} new customers.`, 'success');
+                }
+            }
+
+            function importNewItems(newItems) {
+                newItems.forEach((row, index) => {
+                    const basePrice = parseFloat(row.price) || 0;
+                    items.push({
+                        id: Date.now() + Math.random() + index,
+                        name: row.name,
+                        category: row.category || 'Uncategorized',
+                        description: row.description,
+                        basePrice: basePrice,
+                        price: basePrice,
+                        markupType: 'none',
+                        markupValue: 0
+                    });
+                });
+                
+                renderItems();
+                autoSave();
+                
+                if (newItems.length > 0) {
+                    showNotification(`Successfully imported ${newItems.length} new items.`, 'success');
+                }
+            }
+
+            // Customer modal
+            document.getElementById('addCustomerBtn').addEventListener('click', () => {
+                editingCustomerId = null;
+                document.getElementById('customerModalTitle').textContent = 'Add Customer';
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerContact').value = '';
+                document.getElementById('customerEmail').value = '';
+                document.getElementById('customerPhone').value = '';
+                document.getElementById('customerAddress').value = '';
+                document.getElementById('customerCity').value = '';
+                document.getElementById('customerState').value = '';
+                document.getElementById('customerZipCode').value = '';
+                document.getElementById('customerCountry').value = '';
+                showModal('customerModal');
+            });
+
+            document.getElementById('saveCustomer').addEventListener('click', () => {
+                const name = document.getElementById('customerName').value.trim();
+                const contact = document.getElementById('customerContact').value.trim();
+                const email = document.getElementById('customerEmail').value.trim();
+                const phone = document.getElementById('customerPhone').value.trim();
+                const address = document.getElementById('customerAddress').value.trim();
+                const city = document.getElementById('customerCity').value.trim();
+                const state = document.getElementById('customerState').value.trim();
+                const zipCode = document.getElementById('customerZipCode').value.trim();
+                const country = document.getElementById('customerCountry').value.trim();
+
+                if (name && contact && email) {
+                    if (editingCustomerId) {
+                        const customerIndex = customers.findIndex(c => c.id === editingCustomerId);
+                        if (customerIndex !== -1) {
+                            customers[customerIndex] = {
+                                id: editingCustomerId,
+                                name,
+                                contact,
+                                email,
+                                phone,
+                                address,
+                                city,
+                                state,
+                                zipCode,
+                                country
+                            };
+                        }
+                    } else {
+                        const newCustomer = {
+                            id: Date.now(),
+                            name,
+                            contact,
+                            email,
+                            phone,
+                            address,
+                            city,
+                            state,
+                            zipCode,
+                            country
+                        };
+                        customers.push(newCustomer);
+                    }
+                    
+                    renderCustomers();
+                    autoSave();
+                    
+                    document.getElementById('customerName').value = '';
+                    document.getElementById('customerContact').value = '';
+                    document.getElementById('customerEmail').value = '';
+                    document.getElementById('customerPhone').value = '';
+                    document.getElementById('customerAddress').value = '';
+                    document.getElementById('customerCity').value = '';
+                    document.getElementById('customerState').value = '';
+                    document.getElementById('customerZipCode').value = '';
+                    document.getElementById('customerCountry').value = '';
+                    editingCustomerId = null;
+                    
+                    hideModal('customerModal');
+                }
+            });
+
+            // Item modal
+            document.getElementById('addItemBtn').addEventListener('click', () => {
+                editingItemId = null;
+                document.getElementById('itemModalTitle').textContent = 'Add Item';
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemCategory').value = '';
+                document.getElementById('itemDescription').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('markupNone').checked = true;
+                document.getElementById('markupPercentValue').value = '';
+                document.getElementById('markupFixedValue').value = '';
+                document.getElementById('markupPercentValue').disabled = true;
+                document.getElementById('markupFixedValue').disabled = true;
+                document.getElementById('finalPricePreview').classList.add('hidden');
+                showModal('itemModal');
+            });
+
+            // Markup radio button event listeners
+            document.querySelectorAll('input[name="markupType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const markupType = e.target.value;
+                    const percentInput = document.getElementById('markupPercentValue');
+                    const fixedInput = document.getElementById('markupFixedValue');
+                    
+                    if (markupType === 'percent') {
+                        percentInput.disabled = false;
+                        fixedInput.disabled = true;
+                        fixedInput.value = '';
+                    } else if (markupType === 'fixed') {
+                        fixedInput.disabled = false;
+                        percentInput.disabled = true;
+                        percentInput.value = '';
+                    } else {
+                        percentInput.disabled = true;
+                        fixedInput.disabled = true;
+                        percentInput.value = '';
+                        fixedInput.value = '';
+                    }
+                    updateItemPricePreview();
+                });
+            });
+
+            // Markup value input listeners
+            document.getElementById('itemPrice').addEventListener('input', updateItemPricePreview);
+            document.getElementById('markupPercentValue').addEventListener('input', updateItemPricePreview);
+            document.getElementById('markupFixedValue').addEventListener('input', updateItemPricePreview);
+
+            document.getElementById('saveItem').addEventListener('click', () => {
+                const name = document.getElementById('itemName').value.trim();
+                const category = document.getElementById('itemCategory').value.trim();
+                const description = document.getElementById('itemDescription').value.trim();
+                const basePrice = parseFloat(document.getElementById('itemPrice').value);
+                const markupType = document.querySelector('input[name="markupType"]:checked').value;
+                let markupValue = 0;
+                
+                if (markupType === 'percent') {
+                    markupValue = parseFloat(document.getElementById('markupPercentValue').value) || 0;
+                } else if (markupType === 'fixed') {
+                    markupValue = parseFloat(document.getElementById('markupFixedValue').value) || 0;
+                }
+                
+                const finalPrice = calculateFinalPrice(basePrice, markupType, markupValue);
+
+                if (name && description && basePrice > 0) {
+                    if (editingItemId) {
+                        const itemIndex = items.findIndex(i => i.id === editingItemId);
+                        if (itemIndex !== -1) {
+                            items[itemIndex] = {
+                                id: editingItemId,
+                                name,
+                                category: category || 'Uncategorized',
+                                description,
+                                basePrice,
+                                price: finalPrice,
+                                markupType,
+                                markupValue
+                            };
+                        }
+                    } else {
+                        const newItem = {
+                            id: Date.now(),
+                            name,
+                            category: category || 'Uncategorized',
+                            description,
+                            basePrice,
+                            price: finalPrice,
+                            markupType,
+                            markupValue
+                        };
+                        items.push(newItem);
+                    }
+                    
+                    renderItems();
+                    autoSave();
+                    
+                    // Reset form
+                    document.getElementById('itemName').value = '';
+                    document.getElementById('itemCategory').value = '';
+                    document.getElementById('itemDescription').value = '';
+                    document.getElementById('itemPrice').value = '';
+                    document.getElementById('markupNone').checked = true;
+                    document.getElementById('markupPercentValue').value = '';
+                    document.getElementById('markupFixedValue').value = '';
+                    document.getElementById('markupPercentValue').disabled = true;
+                    document.getElementById('markupFixedValue').disabled = true;
+                    document.getElementById('finalPricePreview').classList.add('hidden');
+                    editingItemId = null;
+                    
+                    hideModal('itemModal');
+                }
+            });
+
+            // Settings
+            document.getElementById('saveCompanyInfo').addEventListener('click', () => {
+                companyInfo.name = document.getElementById('companyName').value.trim();
+                companyInfo.address = document.getElementById('companyAddress').value.trim();
+                companyInfo.phone = document.getElementById('companyPhone').value.trim();
+                companyInfo.email = document.getElementById('companyEmail').value.trim();
+                companyInfo.website = document.getElementById('companyWebsite').value.trim();
+                autoSave();
+                showNotification('Company information saved successfully!', 'success');
+            });
+
+            document.getElementById('saveQuoteSettings').addEventListener('click', () => {
+                quoteSettings.hideLineItemPricing = document.getElementById('hideLineItemPricing').checked;
+                quoteSettings.defaultTerms = document.getElementById('defaultTerms').value.trim();
+                autoSave();
+                showNotification('Quote settings saved successfully!', 'success');
+            });
+
+            // Bulk selection event listeners
+            document.getElementById('selectAllCustomers').addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.customer-checkbox');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                updateCustomerSelection();
+            });
+
+            document.getElementById('selectAllItems').addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.item-checkbox');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                updateItemSelection();
+            });
+
+            document.getElementById('deleteSelectedCustomers').addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Delete selected customers clicked');
+                deleteSelectedCustomers();
+            });
+            
+            document.getElementById('deleteSelectedItems').addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Delete selected items clicked');
+                deleteSelectedItems();
+            });
+            
+            // Add event listener for bulk markup button with proper error handling
+            const applyMarkupBtn = document.getElementById('applyMarkupToSelected');
+            if (applyMarkupBtn) {
+                applyMarkupBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Apply markup to selected button clicked');
+                    applyMarkupToSelectedItems();
+                });
+            } else {
+                console.error('Apply markup button not found in DOM');
+            }
+
+            // Search functionality
+            document.getElementById('customerSearch').addEventListener('input', renderCustomers);
+            document.getElementById('itemSearch').addEventListener('input', renderItems);
+
+            // Aging filter
+            document.getElementById('agingFilter')?.addEventListener('change', () => {
+                renderAgingQuotesList();
+            });
+
+            // Markup modal event listeners
+            document.getElementById('closeMarkupModal').addEventListener('click', () => {
+                hideModal('itemMarkupModal');
+            });
+
+            document.getElementById('cancelMarkup').addEventListener('click', () => {
+                hideModal('itemMarkupModal');
+            });
+
+            document.getElementById('applyMarkup').addEventListener('click', () => {
+                applyItemMarkup();
+            });
+
+            // Markup modal radio button event listeners
+            document.querySelectorAll('input[name="markupModalType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const markupType = e.target.value;
+                    const percentInput = document.getElementById('markupModalPercentValue');
+                    const fixedInput = document.getElementById('markupModalFixedValue');
+                    
+                    if (markupType === 'percent') {
+                        percentInput.disabled = false;
+                        fixedInput.disabled = true;
+                        fixedInput.value = '';
+                    } else if (markupType === 'fixed') {
+                        fixedInput.disabled = false;
+                        percentInput.disabled = true;
+                        percentInput.value = '';
+                    } else {
+                        percentInput.disabled = true;
+                        fixedInput.disabled = true;
+                        percentInput.value = '';
+                        fixedInput.value = '';
+                    }
+                    updateMarkupModalPreview();
+                });
+            });
+
+            // Markup modal value input listeners
+            document.getElementById('markupModalPercentValue').addEventListener('input', updateMarkupModalPreview);
+            document.getElementById('markupModalFixedValue').addEventListener('input', updateMarkupModalPreview);
+
+            // Confirmation modal event listeners
+            document.getElementById('confirmCancel').addEventListener('click', () => {
+                hideConfirmModal();
+            });
+
+            document.getElementById('confirmDelete').addEventListener('click', () => {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+            });
+
+            // Scroll to top functionality
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('hidden');
+                } else {
+                    scrollToTopBtn.classList.add('hidden');
+                }
+            });
+            
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Initialize data and UI
+            loadDataFromLocalStorage();
+            loadCompanySettings();
+            renderCustomers();
+            renderItems();
+            renderQuotes();
+            renderDashboard();
+            renderAgingTab();
+            
+            // Show dashboard by default
+            showTab('dashboard');
+            
+            // Auto-save data periodically
+            setInterval(autoSave, 30000); // Save every 30 seconds
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97dab1cec25d3dd7',t:'MTc1NzYzMDcxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
